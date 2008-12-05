@@ -1,0 +1,15 @@
+Version 0.1.1
+    Fri Dec  5 18:55:45 CET 2008: scorch
+	* IDs works correctly when greater than 9.
+        * 'mode' and 'status' called catagory now.
+
+    Fri Dec  5 21:30:19 CET 2008: scorch
+	* Changed the name from 'todo' to 'sire' (SimpleReminder).
+	* Added a configuration file (~/.sire/sirerc).
+	* Change/add/remove catagories using the config file.
+	* Default catagory for both '--list' and '--add' specified in config file.
+	* Different colors for different catagories specified in config file.
+	* Different catagories may be sorted by 'id' and 'title'.
+
+Version 0.1.0
+    * First version.

@@ -1,5 +1,12 @@
-* config file to change catagories, default catagory, colors?
---- * IDs  gets fucked if more than 9
-* chnage 'mode' and 'status' to catagory
-* change the bloody retarded name of the program
-* possibility to sort by ID or title in a catagory (config file)
+0.1.2
+    * Clean up the code.
+    * Show/hide ID's by default (specified in config).
+    * Make --change, -c enabled.
+    * Clear catagories (save backup?)
+
+0.1.1
+    --- * config file to change catagories, default catagory, colors?
+    --- * IDs  gets fucked if greater than 9
+    --- * change 'mode' and 'status' to catagory
+    --- * change the bloody retarded name of the program
+    --- * possibility to sort by ID or title in a catagory (config file)
