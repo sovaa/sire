@@ -1,0 +1,229 @@
+#!/usr/bin/python
+
+import string, sys, getopt, os
+
+HOME = os.path.expanduser("~")
+PATH = HOME + "/.todo/db"
+NAME = "todo"
+VERSION = "0.1.0"
+AUTHORS = "Oscar Eriksson"
+EMAIL = "(oscar.eriks@gmail.com)"
+LICENCE = '''License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.'''
+
+catagories = ["-- Want to see, but don't have --", "-- Have, but not seen --", "-- Seen --"]
+C = {
+        "bold" : "\033[1m",
+        "default" : "\033[0m",
+        "1" : "\033[31m",
+        "2" : "\033[33m",
+        "3" : "\033[32m",
+        "red" : "\033[31m",
+        "yellow" : "\033[33m",
+        "green" : "\033[32m"
+}
+
+# Define arguemnts.
+opts, args = getopt.getopt(
+    sys.argv[1:],                                    # Arguements from commandline.
+    'lhva:d:c:',                                       # Short arguments.
+    ['list', 'add=', 'change=', 'delete=', 'help', 'version']   # Long arguments.
+)
+
+def usage():
+    print '''Usage: [OPTIONS] [ARGUEMTNS]
+    --list, -l          if no argument is given, items of status 'not seem' will be printed
+    --add, -a           takes two arguments, first is the catagory, second is the title
+    --delete, -d        takes one argument, which is the ID of the item
+    --change, -c        takes two arguments, first is ID of the item and second is what catagory to change to
+    --help, -h          prints this message
+    --version, -v       prints version, author, email, licence
+
+Examples:
+    # add to the default catagory:
+    todo -a "rule the earth"
+    todo -a eat
+    todo -a sleep
+
+    # add to catagory 3:
+    todo -a "build a bunker" 3
+    todo -a profit 3
+'''
+
+# Prints version number, licence and authors with email.
+def version():
+    print NAME,VERSION,'\n',LICENCE,'\n\nWritten by: ',AUTHORS,EMAIL
+
+# Print a catagory (status) description using bold and colors.
+def printcatagory(catagory):
+    print C["bold"], C[catagory], catagories[int(catagory)-1], C["default"]
+
+# Read the database.
+# FIXME: I don't want to load a 500MB file each time I wan't to check what I can watch.
+def parsedb():
+    db = {}
+    id = 0
+    f = file(PATH, 'r')
+    for line in f.readlines():
+        parts = line.split(":", 2)
+        parts[2] = parts[2][:-1]
+
+        if not db.has_key(parts[0]):
+            db[parts[0]] = {parts[1] : parts[2]}
+
+        else:
+            db[parts[0]][parts[1]] = parts[2]
+
+        id += 1
+
+    f.close()
+    return db
+
+# List either all items or only 'not seem' items (default).
+def list(db, catagory):
+    # Nothing in database.
+    if db == {}:
+        print "Empty."
+        sys.exit()
+
+    if catagory == "all":
+        for d in db:
+            printcatagory(d)
+            for id, name in db[d].iteritems():
+                print C["bold"] + id + C["default"], ':', name
+
+            # For newline separator between items of different statuses.
+            print
+        
+    else:
+        # Default catagory is 'not seen'.
+        if catagory is None:
+            catagory = "2" # ID for 'not seen'.
+
+        if catagory not in db.keys():
+            print "Empty."
+            sys.exit()
+
+        printcatagory(catagory)
+        for id, name in db[catagory].iteritems():
+            print C["bold"] + id + C["default"], ':', name
+
+# Add an item to the database.
+def add(db, name, catagory):
+    if catagory not in ["1", "2", "3"]:
+        usage()
+        sys.exit(1)
+
+    l = []
+    for k, v in db.iteritems():
+        l += v.keys()
+
+    id = "0"
+    for i in l:
+        if int(i) > int(id):
+            id = str(i)
+
+    id = str(int(id) + 1)
+
+    f = open(PATH, 'a')
+    f.write(catagory + ":" + id + ":" + name + '\n')
+    f.close()
+
+    print "Saved '" + name + "' with id '" + id + "'."
+
+# Delete an item from the database.
+def delete(db, id):
+    for d in db:
+        if db[d].has_key(id):
+            del db[d][id]
+
+    savedb(db)
+
+# Save a changed database.
+def savedb(db):
+    f = open(PATH, 'w')
+    for d in db:
+        for id in db[d]:
+            f.write(d + ":" + id + ":" + db[d][id] + "\n")
+
+    f.close()
+
+# Change the status of an item with ID 'id'.
+def change(db, id, status):
+    print "changing"
+
+# Handle command line arguments.
+def main():
+    # First read the database from the file.
+    db = parsedb()
+
+    # If no argument given, list items of default catagory.
+    if len(sys.argv) == 1:
+        list(db, None)
+        sys.exit()
+
+    # What to do with the different arguments.
+    for o, a in opts:
+        if o in ("-h", "--help"):
+            usage()
+            sys.exit()
+
+        elif o in ("-l", "--list"):
+            if len(sys.argv) < 3:
+                list(db, None)
+                sys.exit()
+
+            catagory = sys.argv[2]
+            # FIXME: fugly
+            if catagory == "all" or catagory in ["1","2","3"] or catagory is None:
+                list(db, catagory)
+                sys.exit()
+
+            else:
+                usage()
+                sys.exit(1)
+
+        elif o in ("-a", "--add"):
+            if len(sys.argv) < 3:
+                usage()
+                sys.exit(1)
+
+#            catagory = config["default"]
+            catagory = "2"
+
+            if len(sys.argv) == 4:
+                catagory = sys.argv[3]
+
+            title = sys.argv[2]
+            add(db, title, catagory)
+
+        elif o in ("-d", "--delete"):
+            if len(sys.argv) < 3:
+                usage()
+                sys.exit(1)
+    
+            id = sys.argv[2]
+            delete(db, id)
+
+        elif o in ("-c", "--change"):
+            if len(sys.argv) < 4:
+                usage()
+                sys.exit(1)
+    
+            id = sys.agrv[2]
+            catagory = sys.argv[3]
+            change(db, id, catagory)
+
+        elif o in ("-v", "--version"):
+            version()
+            exit()
+
+        else:
+            usage()
+            exit(1)
+
+# Call main().
+if __name__ == "__main__":
+    main()
+    sys.exit()
