@@ -8,6 +8,7 @@ Version 0.1.2
 	  be used if none is specified for a specific catagory.
 	* Added the catagory key after the catagory title when listing a
 	  catagory.
+	* Added support for 'sire -l titles'. List only catagory titles.
 
     Sat Dec  6 18:43:51 CET 2008: scorch
 	* Fixed a bug that made sorting by ID sort: "1, 10, 11, 2, 3, 31, ..."

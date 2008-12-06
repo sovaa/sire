@@ -145,9 +145,16 @@ def list(db, config, catagory):
         print "Empty."
         sys.exit()
 
-    if   catagory == "all" : dbs = db.keys()
-    elif catagory == None  : dbs = config["catagories.defcat-list"]
-    else                   : dbs = [catagory]
+    # Only print the catagory titles.
+    if catagory == "titles":
+        for title in db.keys():
+            printcatagory(title, config)
+
+        sys.exit()
+
+    if catagory == "all"    : dbs = db.keys()
+    elif catagory == None     : dbs = config["catagories.defcat-list"]
+    else                      : dbs = [catagory]
 
     for catagory in dbs:
         if catagory not in db.keys():
