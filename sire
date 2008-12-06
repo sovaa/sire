@@ -35,12 +35,14 @@ opts, args = getopt.getopt(
 
 def usage():
     print '''Usage: [OPTIONS] [ARGUEMTNS]
-    --list, -l          if no argument is given, items of status 'not seem' will be printed
-    --add, -a           takes two arguments, first is the catagory, second is the title
-    --delete, -d        takes one argument, which is the ID of the item
-    --change, -c        takes two arguments, first is ID of the item and second is what catagory to change to
+    --list, -l          takes one argument, may be 'all', 'titles', a valid catagory name, or defcat-list if omitted
+    --add, -a           takes one or two arguments, first is the catagory, second is the title, or defcat-add if omitted
+    --delete, -d        takes one argument, which is the ID of the item to be deleted
+    --change, -c        takes one or two arguments, first is ID of the item and second is what catagory to change to, or defcat-change if omitted
     --help, -h          prints this message
     --version, -v       prints version, author, email, licence
+
+    If no option or argument is specified, sire will list 'defcat-list' specified in 'sirerc'.
 
 Examples:
     # add to the default catagory:
@@ -65,6 +67,9 @@ Examples:
     sire
     sire -l
 
+    # only list all catagory titles
+    sire -l titles
+
     # delete item with ID '39'
     sire -d 39
 
@@ -76,7 +81,7 @@ Examples:
 
     # change the catagory of a title with ID '569' to the default catagory (specified in sirerc)
     sire -c 569
-    
+
 
 Files:
     Configuration:
@@ -152,9 +157,9 @@ def list(db, config, catagory):
 
         sys.exit()
 
-    if catagory == "all"    : dbs = db.keys()
-    elif catagory == None     : dbs = config["catagories.defcat-list"]
-    else                      : dbs = [catagory]
+    if   catagory == "all" : dbs = db.keys()
+    elif catagory == None  : dbs = config["catagories.defcat-list"]
+    else                   : dbs = [catagory]
 
     for catagory in dbs:
         if catagory not in db.keys():
@@ -162,10 +167,19 @@ def list(db, config, catagory):
             sys.exit(1)
 
         dbsel = db[catagory].items()
+
         # Sorting is optional.
         if ("sort." + catagory) in config.keys():
-            # Sort by specified method.
             sortmethod = config["sort." + catagory]
+
+        elif "sort.defsrt" in config.keys():
+            sortmethod = config["sort.defsrt"]
+
+        else:
+            sortmethod = False
+
+        if sortmethod is not False:
+            # Sort by specified method.
             if   sortmethod == "title" : dbsel = sorted(db[catagory].items(), key=lambda (k,v): (v,k))
             elif sortmethod == "id"    : dbsel = sorted(db[catagory].items(), key=lambda (k,v): (int(k),v))
             else                       : dbsel = db[catagory].items()

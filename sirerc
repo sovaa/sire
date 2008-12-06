@@ -3,10 +3,30 @@
 ; You may have any number of catagories, as long as you have a color for it.
 ; The catagory key must be identical to the color key.
 ; The defcat values indicated the default catagory.
-; A defcat value must be identical to the catagory key that you wan't to have as your default catagory.
-; defcat-list specifies the default caagory when listing ('sire -l' will list the specified default catagory).
-; defcat-add specifies the default catagory when adding ('sire -a <title>' will add the item '<title>' to the default catagory).
-; defcat-change specified the default catagory when changing ('sire -c <id>' will move the item with ID '<id>' to the default catagory).
+;
+; A defcat value must be identical to the key that you wan't to have as your 
+; default for that section.
+;
+; defcat-list 
+; specifies the default caagory when listing ('sire -l' will list the specified 
+; default catagory).
+;
+; defcat-add 
+; Specifies the default catagory when adding ('sire -a <title>' will add the item 
+; '<title>' to the default catagory).
+;
+; defcat-change 
+; Specifies the default catagory when changing ('sire -c <id>' will move the item 
+; with ID '<id>' to the default catagory).
+; 
+; defcol 
+; Specifies the default color when printing catagory titles. If defcol is not 
+; specified, no color will be used if none is specified to the spesific catagory.
+;
+; defsrt
+; Specifies what to sort after when no sorting is specified for a specific catagory.
+; If no 'defsrt' is specified, no sorting will be made.
+;
 
 [catagories]
 defcat-list: 1
@@ -36,7 +56,6 @@ life goals: magenta
 
 ; What to sort by. May be 'none', 'id' or 'title'.
 [sort]
+defsrt: title
 0: id
-1: title
-2: title
 life goals: id
