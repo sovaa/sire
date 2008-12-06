@@ -1,5 +1,5 @@
 # Copy 'sire' to somewhere in your BIN path, maybe in "/usr/local/bin/".
-cp sire /usr/local/bin/
+sudo cp sire /usr/local/bin/
 
 # Create a folder called ".sire" in your home folder.
 mkdir ~/.sire/
