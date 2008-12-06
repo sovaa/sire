@@ -5,6 +5,15 @@ Version 0.1.2
 	* Made sorting optional.
 	* Added a check for catagory description. Now required.
 	* The ID field is always atleast four characters of wide now. 
+	* --change, -c now works. Moves a title from one catagory to another.
+	* Added 'catagories.defcat-change' for default catagory to change a
+	  title to when using --change, -c.
+	* Fixed a bug that made 'sire -l 100' list items in catagory '1', '0'
+	  and then '0' again.
+	* Added 'colors.defcol' support in sirerc, that specifies default
+	  color for catagory titles if no color is specified for a specific
+	  catagory. If 'colors.defcol' is missing from sirerc, no color will
+	  be used if none is specified for a specific catagory.
 
 Version 0.1.1
     Fri Dec  5 18:55:45 CET 2008: scorch

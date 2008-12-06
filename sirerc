@@ -5,11 +5,13 @@
 ; The defcat values indicated the default catagory.
 ; A defcat value must be identical to the catagory key that you wan't to have as your default catagory.
 ; defcat-list specifies the default caagory when listing ('sire -l' will list the specified default catagory).
-; defcat-add specifies the default catagory when adding ('sire -a <title>' will add the item to the default catagory).
+; defcat-add specifies the default catagory when adding ('sire -a <title>' will add the item '<title>' to the default catagory).
+; defcat-change specified the default catagory when changing ('sire -c <id>' will move the item with ID '<id>' to the default catagory).
 
 [catagories]
 defcat-list: 1
 defcat-add: 1
+defcat-change: 2
 0: Movies that I'd wan't to see, but don't have
 1: Movies that I have, but not seen
 2: Movies that I've seen
@@ -19,24 +21,22 @@ defcat-add: 1
 6: Books read
 7: Books I want to read
 8: Things to do before I turn 25
-9: Things to do before I die
+life goals: Things to do before I die
+9: Remeber
 
 ; The number indicates what catagory the color is used for.
 ; Colors may be: red, yellow, green, purple, blue, magenta, cyan.
 [colors]
+defcol: green
 0: red
 1: yellow
-2: green
-3: purple
-4: blue
-5: red
-6: red
 7: red
-8: green
+life goals: magenta
 9: cyan
 
 ; What to sort by. May be 'none', 'id' or 'title'.
 [sort]
 0: id
-1: id
+1: title
 2: title
+life goals: id
