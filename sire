@@ -8,7 +8,7 @@ CONFIG = PATH + "/sirerc"
 DB = PATH + "/siredb"
 
 NAME = "sire"
-VERSION = "0.1.1"
+VERSION = "0.1.2"
 AUTHORS = "Oscar Eriksson"
 EMAIL = "(oscar.eriks@gmail.com)"
 LICENCE = '''License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
@@ -92,6 +92,10 @@ def parseconfig(conffile):
 
 # Print a catagory (status) description using bold and colors.
 def printcatagory(catagory, config):
+    if ("catagories." + catagory) not in config.keys():
+        print "There is no Catagory description for catagory '" + catagory + "'!"
+        sys.exit(1)
+
     print C["bold"], C[config["colors." + catagory]], config["catagories." + catagory], C["default"]
 
 # Read the database.
@@ -123,34 +127,35 @@ def list(db, config, catagory):
         sys.exit()
 
     if catagory == "all":
-        for d in db:
-            printcatagory(d, config)
-            for id, name in db[d].iteritems():
-                print C["bold"] + id + C["default"], ':', name
+        dbs = db.keys()
 
-            # For newline separator between items of different statuses.
-            print
-        
+    elif catagory == None:
+        dbs = config["catagories.defcat-list"]
+
     else:
-        # Default catagory is 'not seen'.
-        if catagory is None:
-            catagory = config["catagories.defcat-list"]
+        dbs = catagory
 
-        if catagory not in db.keys():
-            print "Empty."
-            sys.exit()
 
-        # Print the catagory title.
+    for catagory in dbs:
+        # Sorting is optional.
+        if ("sort." + catagory) in config.keys():
+            # Sort by specified method.
+            sortmethod = config["sort." + catagory]
+            if   sortmethod == "title" : dbsel = sorted(db[catagory].items(), key=lambda (k,v): (v,k))
+            elif sortmethod == "id"    : dbsel = sorted(db[catagory].items(), key=lambda (k,v): (int(k),v))
+            else                       : dbsel = db[catagory].items()
+
         printcatagory(catagory, config)
+        for id, title in dbsel:
+            # Make titles aligned.
+            spacer = ''
+            for i in range(0, 3 - len(id)):
+                spacer += ' '
 
-        # Sort by specified method.
-        sortmethod = config["sort." + catagory]
-        if   sortmethod == "title" : db = sorted(db[catagory].items(), key=lambda (k,v): (v,k))
-        elif sortmethod == "id"    : db = sorted(db[catagory].items(), key=lambda (k,v): (k,v))
-        else                       : db = db[catagory].items()
-
-        for id, title in db:
-            print C["bold"] + id + C["default"], ':', title
+            print C['bold'] + id + spacer + C['default'], ':', title
+ 
+        # For newline separator between items of different statuses.
+        print
 
 # Add an item to the database.
 def add(db, config, name, catagory):

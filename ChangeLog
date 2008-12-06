@@ -1,3 +1,11 @@
+Version 0.1.2
+    Sat Dec  6 18:43:51 CET 2008: scorch
+	* Fixed a bug that made sorting by ID sort: "1, 10, 11, 2, 3, 31, ..."
+	* Fixed a bug that made sorting only work when printing one catagory.
+	* Made sorting optional.
+	* Added a check for catagory description. Now required.
+	* The ID field is always atleast four characters of wide now. 
+
 Version 0.1.1
     Fri Dec  5 18:55:45 CET 2008: scorch
 	* IDs works correctly when greater than 9.
