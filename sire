@@ -115,7 +115,7 @@ def printcatagory(catagory, config):
     else:
         color = C[config["colors." + catagory]]
 
-    print C["bold"], color, config["catagories." + catagory], C["default"]
+    print C["bold"], color, config["catagories." + catagory], "('" + catagory + "')", C["default"]
 
 # Read the database.
 # FIXME: I don't want to load a 500MB file each time I wan't to check what I can watch.
