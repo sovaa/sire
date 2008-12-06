@@ -13,6 +13,9 @@ Version 0.1.2
 	  sorting method to be used if no method specified for a specific
 	  catagory. If 'sort.defsrt' is missing from sirerc, no sorting will
 	  be used if none is specified for a specific catagory.
+	* Added section 'general'.
+	* Added 'general.showid' support in sirerc, that specifies if the ID
+	  of the titles should be printed or not when listing.
 
     Sat Dec  6 18:43:51 CET 2008: scorch
 	* Fixed a bug that made sorting by ID sort: "1, 10, 11, 2, 3, 31, ..."

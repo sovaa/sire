@@ -191,7 +191,15 @@ def list(db, config, catagory):
             for i in range(0, 3 - len(id)):
                 spacer += ' '
 
-            print C['bold'] + id + spacer + C['default'], ':', title
+            # Showing ID when listing is optional.
+            if "general.showid" not in config.keys():
+                print title
+            
+            elif config["general.showid"] == '1':
+                print C['bold'] + id + spacer + C['default'], ':', title
+
+            else:
+                print title
  
         # For newline separator between items of different statuses.
         print

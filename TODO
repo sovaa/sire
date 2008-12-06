@@ -1,6 +1,6 @@
 * Clean up the code.
-* Show/hide ID's by default (specified in config).
-* Make --change, -c enabled.
+--- * Show/hide ID's by default (specified in config).
+--- * Make --change, -c enabled.
 * Clear catagories (save backup?)
 --- * config file to change catagories, default catagory, colors?
 --- * IDs  gets fucked if greater than 9
