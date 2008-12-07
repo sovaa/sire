@@ -1,0 +1,38 @@
+
+Examples:
+    # add to the default catagory:
+    sire -a "rule the earth"
+    sire -a eat
+    sire -a sleep
+
+    # add to catagory 3:
+    sire -a "build a bunker" 3
+    sire -a profit 3
+
+    # add to catagory "life goals":
+    sire -a "world domination" "life goals"
+
+    # list all items in all catagories
+    sire -l all
+
+    # list all items in catagory "life goals"
+    sire -l "life goals"
+
+    # list all items in the default catagory (specified in sirerc)
+    sire
+    sire -l
+
+    # only list all catagory titles
+    sire -l titles
+
+    # delete item with ID '39'
+    sire -d 39
+
+    # change the catagory of a title with ID '23' to catagory "life goals"
+    sire -c 23 "life goals"o
+
+    # change the catagory of a title with ID '23' to catagory '3'
+    sire -c 23 3
+
+    # change the catagory of a title with ID '569' to the default catagory (specified in sirerc)
+    sire -c 569

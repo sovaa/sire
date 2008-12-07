@@ -1,4 +1,7 @@
 Version 0.1.2
+    Sun Dec  7 22:01:37 CET 2008: scorch
+	* Moved examples from --help to README.
+
     Sat Dec  6 21:25:22 CET 2008: scorch
 	* Fixed a bug that made 'sire -l 100' list items in catagory '1', '0'
 	  and then '0' again.
