@@ -36,14 +36,14 @@ opts, args = getopt.getopt(
 def usage():
     print '''Usage: [OPTION] [ARGUMENTS]
     --list, -l          Takes one argument, may be 'all', 'titles', a valid 
-			catagory name, or defcat-list if omitted.
+                        catagory name, or defcat-list if omitted.
     --add, -a           Takes one or two arguments, first is the catagory, 
-			second is the title, or defcat-add if omitted.
+                        second is the title, or defcat-add if omitted.
     --delete, -d        Takes one argument, which is the ID of the item to be 
-			deleted.
+                        deleted.
     --change, -c        Takes one or two arguments, first is ID of the item and
-			second is what catagory to change to, or defcat-change 
-			if omitted.
+                        second is what catagory to change to, or defcat-change 
+                        if omitted.
     --help, -h          Prints this message.
     --version, -v       Prints version, author, email, licence.
 
@@ -149,7 +149,7 @@ def list(db, config, catagory):
 
         if sortmethod is not False:
             # Sort by specified method.
-            if   sortmethod == "title" : dbsel = sorted(db[catagory].items(), key=lambda (k,v): (v,k))
+            if   sortmethod == "title" : dbsel = sorted(db[catagory].items(), key=lambda (k,v): (v.lower(),k))
             elif sortmethod == "id"    : dbsel = sorted(db[catagory].items(), key=lambda (k,v): (int(k),v))
             else                       : dbsel = db[catagory].items()
 

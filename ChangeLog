@@ -1,4 +1,8 @@
 Version 0.1.2
+    Mon Dec  8 21:15:20 CET 2008: scorch
+	* Changed tabs in --help, -h to spaces.
+	* Sorting was case sensitive, changed to case insensitive.
+
     Sun Dec  7 22:01:37 CET 2008: scorch
 	* Moved examples from --help to README.
 
