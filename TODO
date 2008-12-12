@@ -7,3 +7,8 @@
 --- * change 'mode' and 'status' to catagory
 --- * change the bloody retarded name of the program
 --- * possibility to sort by ID or title in a catagory (config file)
+* possibility to use either flat file database or mysql (specified in config file)
+* search for items
+* check if already added in that catagory, warn if in other catagory
+* make deflist-change global on all catagories IF NOT specified for a specific catagory
+* command line option to hide ID (--noid, -n?)
