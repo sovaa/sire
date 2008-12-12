@@ -1,14 +1,14 @@
 * Clean up the code.
 --- * Show/hide ID's by default (specified in config).
 --- * Make --change, -c enabled.
-* Clear catagories (save backup?)
---- * config file to change catagories, default catagory, colors?
+* Clear categories (save backup?)
+--- * config file to change categories, default category, colors?
 --- * IDs  gets fucked if greater than 9
---- * change 'mode' and 'status' to catagory
+--- * change 'mode' and 'status' to category
 --- * change the bloody retarded name of the program
---- * possibility to sort by ID or title in a catagory (config file)
+--- * possibility to sort by ID or title in a category (config file)
 * possibility to use either flat file database or mysql (specified in config file)
 * search for items
-* check if already added in that catagory, warn if in other catagory
-* make deflist-change global on all catagories IF NOT specified for a specific catagory
+* check if already added in that category, warn if in other category
+* make deflist-change global on all categories IF NOT specified for a specific category
 * command line option to hide ID (--noid, -n?)
