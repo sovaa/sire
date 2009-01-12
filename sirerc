@@ -4,28 +4,33 @@
 ; The catagory key must be identical to the color key.
 ; The defcat values indicated the default catagory.
 ;
-; A 'def' value must be identical to the key that you wan't to have as your 
+; A 'defval' value must be identical to the key that you wan't to have as your 
 ; default for that section.
 ;
-; catagories.defcat-list 
+; defval.list 
 ; specifies the default caagory when listing ('sire -l' will list the specified 
 ; default catagory).
 ;
-; catagories.defcat-add 
+; defval.add 
 ; Specifies the default catagory when adding ('sire -a <title>' will add the item 
 ; '<title>' to the default catagory).
 ;
-; catagories.defcat-change 
+; defval.change-<catagory>
+; Specifies the default catagory to change to from the catagory <catagory>. If
+; not specified for a certain catagory, 'defval.change' will be used.
+;
+; defval.change
 ; Specifies the default catagory when changing ('sire -c <id>' will move the item 
-; with ID '<id>' to the default catagory).
+; with ID '<id>' to the default catagory) if no defval.change-<catagory> is 
+; specified.
 ; 
-; colors.defcol 
-; Specifies the default color when printing catagory titles. If defcol is not 
+; defval.color 
+; Specifies the default color when printing catagory titles. If defval.color is not 
 ; specified, no color will be used if none is specified to the spesific catagory.
 ;
-; sort.defsrt
+; defval.sort
 ; Specifies what to sort after when no sorting is specified for a specific catagory.
-; If no 'defsrt' is specified, no sorting will be made.
+; If no 'defval.sort' is specified, no sorting will be made.
 ;
 ; general.showid
 ; Specifies if the ID of the titles should be printed when listing. If set to '1',
@@ -39,6 +44,9 @@ showid: 1
 [defval]
 list: 1
 add: 1
+change-0: 1
+change-1: 2
+change-2: 1
 change: 2
 sort: title
 color: green
