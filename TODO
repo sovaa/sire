@@ -1,3 +1,7 @@
+* remove duplicates
+--- * list duplicates
+* search?
+--- * deflist for each operation
 * Clean up the code.
 --- * Show/hide ID's by default (specified in config).
 --- * Make --change, -c enabled.

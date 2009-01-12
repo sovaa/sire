@@ -1,3 +1,12 @@
+Version 0.1.3
+    Mon Dec 29 15:14:58 CET 2008: scorch
+	* Added support for 'sire -l dupe [catagory]' that lists duplicates.
+	  If not catagory is specified, dupes in all catagories will be shown.
+
+    Sun Dec 28 17:48:36 CET 2008: scorch
+	* Moved all default values to a new section called 'defval'.
+	* Added support for default change-to catagory for each catagory.
+
 Version 0.1.2
     Mon Dec  8 21:15:20 CET 2008: scorch
 	* Changed tabs in --help, -h to spaces.

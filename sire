@@ -8,7 +8,7 @@ CONFIG = PATH + "/sirerc"
 DB = PATH + "/siredb"
 
 NAME = "sire"
-VERSION = "0.1.2"
+VERSION = "0.1.3"
 AUTHORS = "Oscar Eriksson"
 EMAIL = "(oscar.eriks@gmail.com)"
 LICENCE = '''License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
@@ -35,20 +35,12 @@ opts, args = getopt.getopt(
 
 def usage():
     print '''Usage: [OPTION] [ARGUMENTS]
-    --list, -l          Takes one argument, may be 'all', 'titles', a valid 
-                        catagory name, or defcat-list if omitted.
-    --add, -a           Takes one or two arguments, first is the catagory, 
-                        second is the title, or defcat-add if omitted.
-    --delete, -d        Takes one argument, which is the ID of the item to be 
-                        deleted.
-    --change, -c        Takes one or two arguments, first is ID of the item and
-                        second is what catagory to change to, or defcat-change 
-                        if omitted.
-    --help, -h          Prints this message.
-    --version, -v       Prints version, author, email, licence.
-
-    If no option or argument is specified, sire will list 'defcat-list' 
-    specified in 'sirerc'.
+    --list, -l
+    --add, -a           
+    --delete, -d        
+    --change, -c        
+    --help, -h          
+    --version, -v       
 
 For examples, see README.
 
@@ -112,6 +104,49 @@ def parsedb(dbfile):
     f.close()
     return db
 
+# List duplicates, all or in a specific catagory.
+def listdupes(db, conf, cat):
+    # If no catagory is specified, go through every catagory.
+    if cat is None:
+        first = True
+        for d in db:
+            i = 0
+            dispt = True
+            for j in range(0,len(db[d])):
+                keys = db[d].keys()
+                vals = db[d].values()
+                key = keys.pop(i)
+                val = vals.pop(i)
+                if val in vals:
+                    if dispt:
+                        if not first:
+                            print
+                        first = False
+                        printcatagory(d, conf)
+                        dispt = False
+                    print key, val
+                i += 1
+
+    elif not cat in db.keys():
+        print "Catagory does not exist."
+        sys.exit(1)
+
+    # Use specified catagory.
+    else:
+        i = 0
+        dispt = True
+        for j in range(0,len(db[cat])):
+            keys = db[cat].keys()
+            vals = db[cat].values()
+            key = keys.pop(i)
+            val = vals.pop(i)
+            if val in vals:
+                if dispt:
+                    printcatagory(cat, conf)
+                    dispt = False
+                print key, val
+            i += 1
+
 # List either all catagories or only the default catagory.
 def list(db, config, catagory):
     # Nothing in database.
@@ -126,8 +161,18 @@ def list(db, config, catagory):
 
         sys.exit()
 
+    # List duplicates.
+    if catagory == "dupe":
+        if len(sys.argv) < 4:
+            listdupes(db, config, None)
+
+        else:
+            listdupes(db, config, sys.argv[3])
+
+        sys.exit()
+
     if   catagory == "all" : dbs = db.keys()
-    elif catagory == None  : dbs = config["catagories.defcat-list"]
+    elif catagory == None  : dbs = config["defval.list"]
     else                   : dbs = [catagory]
 
     for catagory in dbs:
@@ -141,17 +186,20 @@ def list(db, config, catagory):
         if ("sort." + catagory) in config.keys():
             sortmethod = config["sort." + catagory]
 
-        elif "sort.defsrt" in config.keys():
-            sortmethod = config["sort.defsrt"]
+        elif "defval.sort" in config.keys():
+            sortmethod = config["defval.sort"]
 
         else:
             sortmethod = False
 
         if sortmethod is not False:
             # Sort by specified method.
-            if   sortmethod == "title" : dbsel = sorted(db[catagory].items(), key=lambda (k,v): (v.lower(),k))
-            elif sortmethod == "id"    : dbsel = sorted(db[catagory].items(), key=lambda (k,v): (int(k),v))
-            else                       : dbsel = db[catagory].items()
+            if sortmethod == "title":
+                dbsel = sorted(db[catagory].items(), key=lambda (k,v): (v.lower(),k))
+            elif sortmethod == "id":
+                dbsel = sorted(db[catagory].items(), key=lambda (k,v): (int(k),v))
+            else:
+                dbsel = db[catagory].items()
 
         printcatagory(catagory, config)
         for id, title in dbsel:
@@ -234,9 +282,19 @@ def change(db, conf, id, newcat):
     db[newcat][id] = title
     del db[d][id]
 
-    print "Changed catagory of title with ID '" + id + "' from catagory '" + d + "' to catagory '" + newcat + "'."
+    print "Changed catagory of title with ID '"+id+"' from '"+d+"' to '"+newcat+"'."
 
     savedb(db)
+
+# Get the catagory of a title with a certain ID.
+def getcat(db, id):
+    for d in db:
+        if id in db[d].keys():
+            return d
+    
+    # We didn't find it.
+    print "Catagory of title with ID '"+id+"' not found."
+    sys.exit(1)
 
 # Handle command line arguments.
 def main():
@@ -265,7 +323,7 @@ def main():
         elif o in ("-l", "--list"):
             if len(sys.argv) == 2:
                 # Use default catagory first.
-                catagory = config["catagories.defcat-list"]
+                catagory = config["defval.list"]
                 list(db, config, catagory)
                 sys.exit()
 
@@ -278,7 +336,7 @@ def main():
                 sys.exit(1)
 
             # Use default catagory first.
-            catagory = config["catagories.defcat-add"]
+            catagory = config["defval.add"]
 
             if len(sys.argv) == 4:
                 catagory = sys.argv[3]
@@ -300,14 +358,29 @@ def main():
                 sys.exit(1)
     
             id = sys.argv[2]
+            
+            # User didn't specify what catagory to change to, try to use the default value.
+            if len(sys.argv) < 4:
+                curcat = getcat(db, id)
 
-            # Use default catagory first.
-            catagory = config["catagories.defcat-change"]
+                # Try default for current catagory.
+                newcat = "defval.change-" + curcat
+                if not newcat in config.keys():
+                    # Otherwise try to use default for all catagories.
+                    if not "defval.change" in config.keys():
+                        print "Need to specify catagory, default catagory not found."
+                        sys.exit(1)
 
-            if len(sys.argv) == 4:
-                catagory = sys.argv[3]
+                    else:
+                        newcat = config["defval.change"]
+                else:
+                    newcat = config[newcat]
 
-            change(db, config, id, catagory)
+            # User specified catagory.
+            else:
+                newcat = sys.argv[3]
+
+            change(db, config, id, newcat)
 
         elif o in ("-v", "--version"):
             version()
