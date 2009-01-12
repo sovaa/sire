@@ -106,6 +106,8 @@ def parsedb(dbfile):
 
 # List duplicates, all or in a specific catagory.
 def listdupes(db, conf, cat):
+    found = False
+
     # If no catagory is specified, go through every catagory.
     if cat is None:
         first = True
@@ -118,6 +120,7 @@ def listdupes(db, conf, cat):
                 key = keys.pop(i)
                 val = vals.pop(i)
                 if val in vals:
+                    found = True
                     if dispt:
                         if not first:
                             print
@@ -141,11 +144,15 @@ def listdupes(db, conf, cat):
             key = keys.pop(i)
             val = vals.pop(i)
             if val in vals:
+                found = True
                 if dispt:
                     printcatagory(cat, conf)
                     dispt = False
                 print key, val
             i += 1
+
+    if not found:
+        print "No duplicates found."
 
 # List either all catagories or only the default catagory.
 def list(db, config, catagory):
