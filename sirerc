@@ -36,10 +36,14 @@
 [general]
 showid: 1
 
+[defval]
+list: 1
+add: 1
+change: 2
+sort: title
+color: green
+
 [catagories]
-defcat-list: 1
-defcat-add: 1
-defcat-change: 2
 0: Movies that I'd wan't to see, but don't have
 1: Movies that I have, but not seen
 2: Movies that I've seen
@@ -55,7 +59,6 @@ life goals: Things to do before I die
 ; The number indicates what catagory the color is used for.
 ; Colors may be: red, yellow, green, purple, blue, magenta, cyan.
 [colors]
-defcol: green
 0: red
 1: yellow
 7: red
@@ -64,6 +67,5 @@ life goals: magenta
 
 ; What to sort by. May be 'none', 'id' or 'title'.
 [sort]
-defsrt: title
 0: id
 life goals: id
