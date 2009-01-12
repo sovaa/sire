@@ -391,11 +391,11 @@ def main():
 
         elif o in ("-v", "--version"):
             version()
-            exit()
+            sys.exit()
 
         else:
             usage()
-            exit(1)
+            sys.exit(1)
 
 # Call main().
 if __name__ == "__main__":
