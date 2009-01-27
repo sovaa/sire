@@ -67,7 +67,7 @@ def approxsearch(db, conf, sstr):
 
     for str in sstr:
         # allow at most 3 edits 
-        ap = Apse.Approx(str.lower(), edit=3)
+        ap = Apse.Approx(str.lower(), edit=2)
 
         for key in db.keys():
             for val in db[key].values():
