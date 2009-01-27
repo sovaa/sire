@@ -1,6 +1,9 @@
 Version 0.1.4
     Tue Jan 27 19:24:01 CET 2009: scorch
 	* Added approximate searching (--find, -f) support.
+	* Added a warning when adding an item already in the db.
+	* Added support for multiple deletions. 
+	  'sire -d item1 [item2 [item3 [...]]]'
 
 Version 0.1.3
     Mon Dec 29 15:14:58 CET 2008: scorch
