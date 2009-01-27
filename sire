@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
 import string, sys, getopt, os, ConfigParser
+from difflib import get_close_matches
+import Apse # for approximate searching
 
 HOME = os.path.expanduser("~")
 PATH = HOME + "/.sire/"
@@ -8,7 +10,7 @@ CONFIG = PATH + "/sirerc"
 DB = PATH + "/siredb"
 
 NAME = "sire"
-VERSION = "0.1.3"
+VERSION = "0.1.4"
 AUTHORS = "Oscar Eriksson"
 EMAIL = "(oscar.eriks@gmail.com)"
 LICENCE = '''License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
@@ -29,8 +31,8 @@ C = {
 # Define arguemnts.
 opts, args = getopt.getopt(
     sys.argv[1:], # Arguements from commandline.
-    'lhva:d:c:',  # Short arguments.
-    ['list', 'add=', 'change=', 'delete=', 'help', 'version'] # Long arguments.
+    'lhva:d:c:f:',  # Short arguments.
+    ['list', 'add=', 'change=', 'delete=', 'find=', 'help', 'version'] # Long arguments.
 )
 
 def usage():
@@ -38,6 +40,7 @@ def usage():
     --list, -l
     --add, -a           
     --delete, -d        
+    --find, -f
     --change, -c        
     --help, -h          
     --version, -v       
@@ -55,6 +58,36 @@ Files:
 # Prints version number, licence and authors with email.
 def version():
     print NAME,VERSION,'\n',LICENCE,'\n\nWritten by: ',AUTHORS,EMAIL
+
+
+
+# Do an approximate string search using the Apse package.
+def approxsearch(db, conf, sstr):
+    reslist = []
+
+    for str in sstr:
+        # allow at most 3 edits 
+        ap = Apse.Approx(str.lower(), edit=3)
+
+        for key in db.keys():
+            for val in db[key].values():
+                val = val.lower()
+        
+                dist  = ap.dist(val)
+                match = bool(ap.match(val))
+                if match:
+                    reslist.append(("%s" % (val), ("%d", dist)))
+
+    if reslist != []:
+        print "\nMatch found. Best match at the top.\n"
+
+        reslist.sort(lambda x,y:cmp(x[1],y[1]))
+        reslist.reverse()
+        for res in reslist:
+            print res[0]
+
+    else:
+        print "No matches found!"
 
 def parseconfig(conffile):
     _config = {}
@@ -388,6 +421,14 @@ def main():
                 newcat = sys.argv[3]
 
             change(db, config, id, newcat)
+
+        elif o in ("-f", "--find"):
+            if len(sys.argv) < 3:
+                usage()
+                sys.exit(1)
+
+            approxsearch(db, config, sys.argv[2:])
+
 
         elif o in ("-v", "--version"):
             version()
