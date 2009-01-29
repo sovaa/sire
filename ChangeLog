@@ -1,4 +1,8 @@
 Version 0.1.4
+    Thu Jan 29 06:05:44 CET 2009: scorch
+	* Fixed listdupes (--list dupe [cat], -l dupe [cat]). Before when
+	  checking dupes in all catagories, no cross-catagories where checked.
+
     Tue Jan 27 19:24:01 CET 2009: scorch
 	* Added approximate searching (--find, -f) support.
 	* Added a warning when adding an item already in the db.

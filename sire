@@ -177,30 +177,39 @@ def parsedb(dbfile):
 
 
 # List duplicates, all or in a specific catagory.
+# FIXME: O(n^4) complexity ffs
 def listdupes(db, conf, cat):
-    found = False
+    dupeids = []
 
     # If no catagory is specified, go through every catagory.
     if cat is None:
-        first = True
         for d in db:
-            i = 0
-            dispt = True
-            for j in range(0,len(db[d])):
-                keys = db[d].keys()
-                vals = db[d].values()
-                key = keys.pop(i)
-                val = vals.pop(i)
-                if val in vals:
-                    found = True
-                    if dispt:
-                        if not first:
-                            print
-                        first = False
-                        printcatagory(d, conf)
-                        dispt = False
-                    print key, val
-                i += 1
+            dvals = db[d].values()
+            dkeys = db[d].keys()
+
+            while dvals != []:
+                dval = dvals.pop()
+                dkey = dkeys.pop()
+    
+                for dd in db:
+                    if d is dd:
+                        continue
+    
+                    ddvals = db[dd].values()
+                    ddkeys = db[dd].keys()
+    
+                    while ddvals != []:
+                        ddval = ddvals.pop()
+                        ddkey = ddkeys.pop()
+    
+                        if dval == ddval:
+                            if dkey not in dupeids:
+                                dupeids.append(dkey)
+                                print dkey, dval, "(%s)" % d
+
+                            if ddkey not in dupeids:
+                                dupeids.append(ddkey)
+                                print ddkey, ddval, "(%s)" % dd
 
     elif not cat in db.keys():
         print "Catagory does not exist."
@@ -208,22 +217,22 @@ def listdupes(db, conf, cat):
 
     # Use specified catagory.
     else:
-        i = 0
-        dispt = True
-        for j in range(0,len(db[cat])):
-            keys = db[cat].keys()
-            vals = db[cat].values()
-            key = keys.pop(i)
-            val = vals.pop(i)
-            if val in vals:
-                found = True
-                if dispt:
-                    printcatagory(cat, conf)
-                    dispt = False
-                print key, val
-            i += 1
+        dvals = db[cat].values()
+        dkeys = db[cat].keys()
 
-    if not found:
+        while dvals != []:
+            dval = dvals.pop()
+            dkey = dkeys.pop()
+
+            for (k, v) in zip(dkeys, dvals):
+                if dval == v:
+                    dupeids.append(dval)
+                    print dkey, dval, "(%s)" % cat
+                    print k, v, "(%s)" % cat
+                    print
+
+
+    if dupeids == []:
         print "No duplicates found."
 
 

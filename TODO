@@ -3,6 +3,7 @@
 * possibility to use either flat file database or mysql (specified in config file)
 * Clear categories (save backup?)
 * Clean up the code.
+* make listdupes faster. current complexity is O(n^4)!11
 --- * list duplicates
 --- * search?
 --- * deflist for each operation
