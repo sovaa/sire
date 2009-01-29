@@ -296,7 +296,7 @@ def list(db, config, catagory):
                 print title
             
             elif config["general.showid"] == '1':
-                print C['bold'] + id + spacer + C['default'], ':', title
+                print C['bold'] + id + C['default'], spacer + ':', title
 
             else:
                 print title
