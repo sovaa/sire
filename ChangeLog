@@ -1,4 +1,7 @@
 Version 0.1.4
+    Mon Feb  2 15:11:09 CET 2009: scorch
+	* Changing an item to an empty catagory is now possible.
+
     Thu Jan 29 06:05:44 CET 2009: scorch
 	* Fixed listdupes (--list dupe [cat], -l dupe [cat]). Before when
 	  checking dupes in all catagories, no cross-catagories where checked.

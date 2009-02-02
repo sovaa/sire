@@ -397,7 +397,12 @@ def change(db, conf, id, newcat):
         sys.exit(1)
 
     title = db[d][id]
-    db[newcat][id] = title
+
+    if db.has_key(newcat):
+        db[newcat][id] = title
+    else:
+        db[newcat] = dict([(id, title)])
+
     del db[d][id]
 
     print "Changed catagory of title with ID '"+id+"' from '"+d+"' to '"+newcat+"'."
