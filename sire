@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import string, sys, getopt, os, ConfigParser
-from difflib import get_close_matches
 import Apse # for approximate searching
 
 HOME = os.path.expanduser("~")
