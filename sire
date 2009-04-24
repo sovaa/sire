@@ -93,9 +93,20 @@ def approxsearch(db, conf, sstr):
     reslist = []
     reps = {'.':' ', '_':' ', '-':' '}
 
+    if "find.edits" in conf.keys():
+	edits = int(conf["find.edits"])
+	if edits > 10:
+	    edits = 10
+
+	elif edits < 0:
+	    edits = 0
+
+    else:
+	edits = 0
+
     for str in sstr:
         # allow at most 0 edits 
-        ap = Apse.Approx(str.lower(), edit=0)
+        ap = Apse.Approx(str.lower(), edit=edits)
 
         for key in db.keys():
             for (id, val) in db[key].items():

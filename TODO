@@ -5,6 +5,7 @@
 * Clear categories (save backup?)
 * Clean up the code.
 * make listdupes faster. current complexity is O(n^4)!11
+* command line option when searching (--find, -f) to specify the number of allowed edits
 --- * list duplicates
 --- * search?
 --- * deflist for each operation

@@ -6,6 +6,8 @@ Version 0.1.5
 	  the latter is chosen, catagory names will be printed before all
 	  items that were found in that catagory.
 	* Updated usage (--help, -h) to reflect the current revision.
+	* Added the ability to specify in the config file how many edits are
+	  allowed to be made of the search string when searching.
 
 Version 0.1.4
     Mon Feb  2 15:11:09 CET 2009: scorch

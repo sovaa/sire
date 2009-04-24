@@ -56,8 +56,15 @@ color: green
 ; to the distace from the searched-for string. If set to '1', all results will
 ; be sorted according to what catagory they're in, and the catagory name will
 ; be printed before all results in that catagory.
+;
+; find.edits
+; How many characters that may be replaced to try to match a value. May be good
+; if you're not sure of how it's spelled. Warning: When searching for a value
+; of few characeters (less than five or so), even a low number here will match
+; -a lot- of items, so keep that in mind. Hard coded highest for edits is 10.
 [find]
 showcats: 1
+edits: 0
 
 ; Catagories are specified by 'key': 'description'
 [catagories]
