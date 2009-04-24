@@ -1,3 +1,12 @@
+Version 0.1.5
+    Fri Apr 24 17:27:19 CEST 2009: scorch
+	* Searching (--find, -f) now works a little better. ._- is replaced to
+	  white spaces if it didn't match with them.
+	* Possibility to sort search results by relevance of catagory. If
+	  the latter is chosen, catagory names will be printed before all
+	  items that were found in that catagory.
+	* Updated usage (--help, -h) to reflect the current revision.
+
 Version 0.1.4
     Mon Feb  2 15:11:09 CET 2009: scorch
 	* Changing an item to an empty catagory is now possible.

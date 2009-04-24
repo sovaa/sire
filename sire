@@ -9,7 +9,7 @@ CONFIG = PATH + "/sirerc"
 DB = PATH + "/siredb"
 
 NAME = "sire"
-VERSION = "0.1.4"
+VERSION = "0.1.5"
 AUTHORS = "Oscar Eriksson"
 EMAIL = "(oscar.eriks@gmail.com)"
 LICENCE = '''License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
@@ -30,8 +30,8 @@ C = {
 # Define arguemnts.
 opts, args = getopt.getopt(
     sys.argv[1:], # Arguements from commandline.
-    'lhva:d:c:f:',  # Short arguments.
-    ['list', 'add=', 'change=', 'delete=', 'find=', 'help', 'version'] # Long arguments.
+    'lhvfa:d:c:',  # Short arguments.
+    ['list', 'add=', 'change=', 'delete=', 'find', 'help', 'version'] # Long arguments.
 )
 
 
@@ -40,13 +40,13 @@ opts, args = getopt.getopt(
 
 def usage():
     print '''Usage: [OPTION] [ARGUMENTS]
-    --list, -l
-    --add, -a           
-    --delete, -d        
-    --find, -f
-    --change, -c        
-    --help, -h          
-    --version, -v       
+    --list, -l [catagory]
+    --add, -a <value> [catagory]
+    --delete, -d <ID1[, ID2[, ...]]>
+    --find, -f <value1[, value2[, ...]]>
+    --change, -c <ID1> <ID2>
+    --help, -h
+    --version, -v
 
 For examples, see README.
 
@@ -81,32 +81,75 @@ def itemexists(db, item):
 
 
 
+def replace_all(text, dic):
+    for i, j in dic.iteritems():
+        text = text.replace(i, j)
+    
+    return text
 
 
 # Do an approximate string search using the Apse package.
 def approxsearch(db, conf, sstr):
     reslist = []
+    reps = {'.':' ', '_':' ', '-':' '}
 
     for str in sstr:
-        # allow at most 3 edits 
+        # allow at most 0 edits 
         ap = Apse.Approx(str.lower(), edit=0)
 
         for key in db.keys():
-            for val in db[key].values():
-                val = val.lower()
-        
-                dist  = ap.dist(val)
-                match = bool(ap.match(val))
-                if match:
-                    reslist.append(("%s" % (val), ("%d", dist)))
+            for (id, val) in db[key].items():
+                val_orig = val.lower()
+                fnd = bool(ap.match(val_orig))
+		dst = ap.dist(val_orig)
+		res = (id, "%s" % val, ("%d", dst), key)
+
+                if fnd and val not in reslist:
+		    reslist.append(res)
+
+		# Try to match if we replace some characters.
+		val_rep = replace_all(val.lower(), reps)
+                fnd_rep = bool(ap.match(val_rep))
+		dst_rep = ap.dist(val)
+		res_rep = (id, "%s" % val, ("%d", dst_rep), key)
+
+	        if not fnd and fnd_rep and val not in reslist:
+		    reslist.append(res_rep)
 
     if reslist != []:
-        print "\nMatch found. Best match at the top.\n"
+	showcats = False
+	if "find.showcats" in conf.keys() and conf["find.showcats"] == '1':
+	    showcats = True
 
-        reslist.sort(lambda x,y:cmp(x[1],y[1]))
-        reslist.reverse()
+        print "Match found. Best match at the top.\n"
+	old_cat = None
+
+	if showcats:
+            reslist.sort(lambda x,y:cmp(x[3],y[3]))
+	    reslist.reverse()
+	
+	else:
+            reslist.sort(lambda x,y:cmp(x[2],y[2]))
+	    reslist.reverse()
+
         for res in reslist:
-            print res[0]
+	    if showcats:
+		if old_cat is None or res[3] != old_cat:
+		    print
+		    printcatagory(res[3], conf)
+		    old_cat = res[3]
+
+            # Make titles aligned.
+            spacer = ''
+            for i in range(0, 3 - len(res[0])):
+                spacer += ' '
+
+            # Showing ID when listing is optional.
+            if "general.showid" not in conf.keys():
+                print res[1]
+            
+            elif conf["general.showid"] == '1':
+                print C['bold'] + res[0] + C['default'], spacer + ':', res[1]
 
     else:
         print "No matches found!"

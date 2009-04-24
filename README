@@ -28,11 +28,18 @@ Examples:
     # delete item with ID '39'
     sire -d 39
 
+    # delete items with ID '12', '2023' and '45'
+    sire -d 12 2023 45
+
     # change the catagory of a title with ID '23' to catagory "life goals"
-    sire -c 23 "life goals"o
+    sire -c 23 "life goals"
 
     # change the catagory of a title with ID '23' to catagory '3'
     sire -c 23 3
 
     # change the catagory of a title with ID '569' to the default catagory (specified in sirerc)
     sire -c 569
+
+    # search for 'world domination' and 'eat'
+    sire -f "world domination"
+    sire -f eat

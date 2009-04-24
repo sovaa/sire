@@ -1,70 +1,84 @@
-; Config is like this: 'key: value'.
-; The key can be anything except ':'.
-; You may have any number of catagories, as long as you have a color for it.
-; The catagory key must be identical to the color key.
-; The defcat values indicated the default catagory.
-;
-; A 'defval' value must be identical to the key that you wan't to have as your 
-; default for that section.
-;
-; defval.list 
-; specifies the default caagory when listing ('sire -l' will list the specified 
-; default catagory).
-;
-; defval.add 
-; Specifies the default catagory when adding ('sire -a <title>' will add the item 
-; '<title>' to the default catagory).
-;
-; defval.change-<catagory>
-; Specifies the default catagory to change to from the catagory <catagory>. If
-; not specified for a certain catagory, 'defval.change' will be used.
-;
-; defval.change
-; Specifies the default catagory when changing ('sire -c <id>' will move the item 
-; with ID '<id>' to the default catagory) if no defval.change-<catagory> is 
-; specified.
+; Configuration Instructions
 ; 
-; defval.color 
-; Specifies the default color when printing catagory titles. If defval.color is not 
-; specified, no color will be used if none is specified to the spesific catagory.
-;
-; defval.sort
-; Specifies what to sort after when no sorting is specified for a specific catagory.
-; If no 'defval.sort' is specified, no sorting will be made.
-;
-; general.showid
-; Specifies if the ID of the titles should be printed when listing. If set to '1',
-; IDs will be printed. If not specified or set so something else then '1', ID's will
-; not be printed.
-;
+; 1. Config is like this: 'key: value'.
+; 2. The key can be anything except ':'.
+; 3. You may have any number of catagories.
+; 4. The catagory key must be identical to the color and sort key (if you 
+;    specify any of these).
+; 5. A 'defval' value must be identical to the key that you wan't to have as 
+;    your default for that operation.
 
+; general.showid
+; If not specified or set to '0', no ID numbers will be printed while listing
+; or searching.
 [general]
 showid: 1
 
+; defval.list 
+; specifies the default caagory when listing ('sire -l' will list the specified
+; default catagory).
+;
+; defval.add 
+; Specifies the default catagory when adding ('sire -a <title>' will add the
+; item '<title>' to the default catagory).
+;
+; defval.change-<catagory>
+; Specifies the default catagory to change to from the catagory <catagory>. 
+; If not specified for a certain catagory, 'defval.change' will be used.
+;
+; defval.change
+; Specifies the default catagory when changing ('sire -c <id>' will move the
+; item with ID '<id>' to the default catagory) if no defval.change-<catagory>
+; is specified.
+; 
+; defval.color 
+; Specifies the default color when printing catagory titles. If defval.color 
+; is not specified, no color will be used if none is specified to the spesific
+; catagory.
+;
+; defval.sort
+; Specifies what to sort after when no sorting is specified for a specific 
+; catagory. If no 'defval.sort' is specified, no sorting will be made.
 [defval]
 list: 1
 add: 1
 change-0: 1
 change-1: 2
 change-2: 1
+change-4: 10
+change-6: 5
 change: 2
 sort: title
 color: green
 
+; find.showcats
+; If not specified or set to '0', results of a search will be sorted according
+; to the distace from the searched-for string. If set to '1', all results will
+; be sorted according to what catagory they're in, and the catagory name will
+; be printed before all results in that catagory.
+[find]
+showcats: 1
+
+; Catagories are specified by 'key': 'description'
 [catagories]
 0: Movies that I'd wan't to see, but don't have
 1: Movies that I have, but not seen
 2: Movies that I've seen
 3: School work to be done
-4: Future projects
-5: Completed projects
-6: Books read
-7: Books I want to read
+4: Games I want to play
+10: Games I've played
+5: Books read
+6: Books I want to read
 8: Things to do before I turn 25
 life goals: Things to do before I die
-9: Remeber
+9: Remember
+wiki: wiki
+buy: Things to buy
+write: Things I want to write about
+learn: Things I want to learn
+gk: General Knowledge
 
-; The number indicates what catagory the color is used for.
+; The number indicates what catagory key the color is used for.
 ; Colors may be: red, yellow, green, purple, blue, magenta, cyan.
 [colors]
 0: red
@@ -73,7 +87,8 @@ life goals: Things to do before I die
 life goals: magenta
 9: cyan
 
-; What to sort by. May be 'none', 'id' or 'title'.
+; What to sort by. May be 'none', 'id' or 'title'. Key is for 'catagory key'.
 [sort]
 0: id
 life goals: id
+write: id
