@@ -440,28 +440,30 @@ def savedb(db):
 
 
 # Change the value of an item with ID 'id'.
-def change(db, conf, id, val):
+def change(db, conf, id, val_orig):
     # Find all '%([0-9+)' in 'val'.
-    res = re.findall(r'\%\(([0-9]+|#)\)', val)
-    cat = getcat(db, id)
-    old = db[cat][id]
+    id = id.split(',')
+    res = re.findall(r'\%\(([0-9]+|#)\)', val_orig)
 
     if res != []:
-	for v in res:
-	    if not cmp(v, '#'):
-		rval = old
+	for i in id:
+	    val = val_orig
+	    for v in res:
+		if not cmp(v, '#'):
+		    rval = db[getcat(db, i)][i]
 
-	    else:
-	        rval = db[getcat(db, v)][v]
+		else:
+		    rval = db[getcat(db, v)][v]
 
-	    p = re.compile('\%\(' + v + '\)')
-	    val = p.sub(rval, val)
+		p = re.compile('\%\(' + v + '\)')
+		val = p.sub(rval, val)
 
-    db[cat][id] = val
+	    cat = getcat(db, i)
+	    old = db[cat][i]
+	    print "Changed item '" + i + "' from '" + old + "' to '" + val + "'."
+            db[cat][i] = val
+
     savedb(db)
-
-    print "Changed the value if item with ID '" + id + "' from '" + old + "' to '" + db[cat][id] + "'."
-
 
 
 

@@ -7,6 +7,7 @@
 * make listdupes faster. current complexity is O(n^4)!11
 * command line option when searching (--find, -f) to specify the number of allowed edits
 * add support for easy self referencing when using change (--change, -c)
+--- * add support for comma seperated list when using change (--change, -c)
 --- * rename change (--change, -c) to move (--move, -m) 
 --- * add change (--change, -c) <ID> <new value> that changes the value of an item
 --- * add support for ID referencing: -c 200 "some text $200 more text"
