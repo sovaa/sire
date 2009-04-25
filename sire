@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import string, sys, getopt, os, ConfigParser
+import string, sys, getopt, os, re, ConfigParser
 import Apse # for approximate searching
 
 HOME = os.path.expanduser("~")
@@ -9,11 +9,11 @@ CONFIG = PATH + "/sirerc"
 DB = PATH + "/siredb"
 
 NAME = "sire"
-VERSION = "0.1.5"
+VERSION = "0.1.6"
 AUTHORS = "Oscar Eriksson"
 EMAIL = "(oscar.eriks@gmail.com)"
 LICENCE = '''License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
-This is free software: you are free to change and redistribute it.
+This is free software: you are free to move and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.'''
 
 C = { 
@@ -30,8 +30,8 @@ C = {
 # Define arguemnts.
 opts, args = getopt.getopt(
     sys.argv[1:], # Arguements from commandline.
-    'lhvfa:d:c:',  # Short arguments.
-    ['list', 'add=', 'change=', 'delete=', 'find', 'help', 'version'] # Long arguments.
+    'lhcvfa:d:m:',  # Short arguments.
+    ['list', 'change', 'add=', 'move=', 'delete=', 'find', 'help', 'version'] # Long arguments.
 )
 
 
@@ -44,7 +44,8 @@ def usage():
     --add, -a <value> [catagory]
     --delete, -d <ID1[, ID2[, ...]]>
     --find, -f <value1[, value2[, ...]]>
-    --change, -c <ID1> <ID2>
+    --move, -m <ID1> <ID2>
+    --change, -c <ID> <new value>
     --help, -h
     --version, -v
 
@@ -105,7 +106,7 @@ def approxsearch(db, conf, sstr):
 	edits = 0
 
     for str in sstr:
-        # allow at most 0 edits 
+        # allow at most 'edits' edits 
         ap = Apse.Approx(str.lower(), edit=edits)
 
         for key in db.keys():
@@ -433,8 +434,30 @@ def savedb(db):
 
 
 
-# Change the status of an item with ID 'id'.
-def change(db, conf, id, newcat):
+# Change the value of an item with ID 'id'.
+def change(db, conf, id, val):
+    # Find all '%([0-9+)' in 'val'.
+    res = re.findall(r'\%\(([0-9]+)\)', val)
+    cat = getcat(db, id)
+    old = db[cat][id]
+
+    if res != []:
+	for v in res:
+	    rval = db[getcat(db, v)][v]
+	    p = re.compile('\%\(' + v + '\)')
+	    val = p.sub(rval, val)
+
+    db[cat][id] = val
+    savedb(db)
+
+    print "Changed the value if item with ID '" + id + "' from '" + old + "' to '" + db[cat][id] + "'."
+
+
+
+
+
+# Move an item with ID 'id' to a new catagory.
+def move(db, conf, id, newcat):
     found = False
     for d in db:
         if id in db[d].keys():
@@ -458,7 +481,7 @@ def change(db, conf, id, newcat):
 
     del db[d][id]
 
-    print "Changed catagory of title with ID '"+id+"' from '"+d+"' to '"+newcat+"'."
+    print "Moved item with ID '"+id+"' from '"+d+"' to '"+newcat+"'."
 
     savedb(db)
 
@@ -536,27 +559,38 @@ def main():
             id = sys.argv[2:]
             delete(db, id)
 
-        elif o in ("-c", "--change"):
+	elif o in ("-c", "--change"):
+	    if len(sys.argv) < 4:
+		usage()
+		sys.exit(1)
+
+	    id = sys.argv[2]
+	    val = sys.argv[3]
+
+	    change(db, config, id, val)
+	    
+
+        elif o in ("-m", "--move"):
             if len(sys.argv) < 3:
                 usage()
                 sys.exit(1)
     
             id = sys.argv[2]
             
-            # User didn't specify what catagory to change to, try to use the default value.
+            # User didn't specify what catagory to move to, try to use the default value.
             if len(sys.argv) < 4:
                 curcat = getcat(db, id)
 
                 # Try default for current catagory.
-                newcat = "defval.change-" + curcat
+                newcat = "defval.move-" + curcat
                 if not newcat in config.keys():
                     # Otherwise try to use default for all catagories.
-                    if not "defval.change" in config.keys():
+                    if not "defval.move" in config.keys():
                         print "Need to specify catagory, default catagory not found."
                         sys.exit(1)
 
                     else:
-                        newcat = config["defval.change"]
+                        newcat = config["defval.move"]
                 else:
                     newcat = config[newcat]
 
@@ -564,7 +598,7 @@ def main():
             else:
                 newcat = sys.argv[3]
 
-            change(db, config, id, newcat)
+            move(db, config, id, newcat)
 
         elif o in ("-f", "--find"):
             if len(sys.argv) < 3:

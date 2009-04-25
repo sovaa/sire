@@ -6,6 +6,9 @@
 * Clean up the code.
 * make listdupes faster. current complexity is O(n^4)!11
 * command line option when searching (--find, -f) to specify the number of allowed edits
+--- * rename change (--change, -c) to move (--move, -m) 
+--- * add change (--change, -c) <ID> <new value> that changes the value of an item
+--- * add support for ID referencing: -c 200 "some text $200 more text"
 --- * list duplicates
 --- * search?
 --- * deflist for each operation

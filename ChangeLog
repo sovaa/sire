@@ -1,3 +1,13 @@
+Version 0.1.6
+    Sat Apr 25 19:24:15 CEST 2009: scorch
+	* Renamed change (--change, -c) to move (--move, -m).
+	* Added support for change (--change, -c) <ID> <new value> that
+	  changes the value of an item with ID '<ID>'.
+	* Added support for ID referencing in change (--change, -c).
+	  e.g. 'sire -c 200 "some text %(<ID1>) more text %(<ID2>) text',
+	  which will insert the values if the items with ID '<ID1>' and
+	  '<ID2>' at the specified places in the text.
+
 Version 0.1.5
     Fri Apr 24 17:27:19 CEST 2009: scorch
 	* Searching (--find, -f) now works a little better. ._- is replaced to
