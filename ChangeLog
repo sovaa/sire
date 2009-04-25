@@ -7,6 +7,8 @@ Version 0.1.6
 	  e.g. 'sire -c 200 "some text %(<ID1>) more text %(<ID2>) text',
 	  which will insert the values if the items with ID '<ID1>' and
 	  '<ID2>' at the specified places in the text.
+	* Added support for easy self referencing when using change (--change,
+	  -c). E.g. 'sire -c 20 "%(#)"', is the same as 'sire -c 20 "%(20)"'.
 
 Version 0.1.5
     Fri Apr 24 17:27:19 CEST 2009: scorch

@@ -82,11 +82,16 @@ def itemexists(db, item):
 
 
 
+
+
 def replace_all(text, dic):
     for i, j in dic.iteritems():
         text = text.replace(i, j)
     
     return text
+
+
+
 
 
 # Do an approximate string search using the Apse package.
@@ -437,18 +442,23 @@ def savedb(db):
 # Change the value of an item with ID 'id'.
 def change(db, conf, id, val):
     # Find all '%([0-9+)' in 'val'.
-    res = re.findall(r'\%\(([0-9]+)\)', val)
+    res = re.findall(r'\%\(([0-9]+|#)\)', val)
     cat = getcat(db, id)
     old = db[cat][id]
 
     if res != []:
 	for v in res:
-	    rval = db[getcat(db, v)][v]
+	    if not cmp(v, '#'):
+		rval = old
+
+	    else:
+	        rval = db[getcat(db, v)][v]
+
 	    p = re.compile('\%\(' + v + '\)')
 	    val = p.sub(rval, val)
 
     db[cat][id] = val
-    savedb(db)
+    #savedb(db)
 
     print "Changed the value if item with ID '" + id + "' from '" + old + "' to '" + db[cat][id] + "'."
 
