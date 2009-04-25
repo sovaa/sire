@@ -458,7 +458,7 @@ def change(db, conf, id, val):
 	    val = p.sub(rval, val)
 
     db[cat][id] = val
-    #savedb(db)
+    savedb(db)
 
     print "Changed the value if item with ID '" + id + "' from '" + old + "' to '" + db[cat][id] + "'."
 
