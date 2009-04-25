@@ -7,6 +7,8 @@
 ;    specify any of these).
 ; 5. A 'defval' value must be identical to the key that you wan't to have as 
 ;    your default for that operation.
+; 6. Colors may be any of 'bold', 'red', 'green', 'yellow', 'blue', 'magenta'
+;    and 'cyan'.
 
 ; general.showid
 ; If not specified or set to '0', no ID numbers will be printed while listing
@@ -22,13 +24,13 @@ showid: 1
 ; Specifies the default catagory when adding ('sire -a <title>' will add the
 ; item '<title>' to the default catagory).
 ;
-; defval.change-<catagory>
-; Specifies the default catagory to change to from the catagory <catagory>. 
-; If not specified for a certain catagory, 'defval.change' will be used.
+; defval.move-<catagory>
+; Specifies the default catagory to move to from the catagory <catagory>. 
+; If not specified for a certain catagory, 'defval.move' will be used.
 ;
-; defval.change
+; defval.move
 ; Specifies the default catagory when changing ('sire -c <id>' will move the
-; item with ID '<id>' to the default catagory) if no defval.change-<catagory>
+; item with ID '<id>' to the default catagory) if no defval.move-<catagory>
 ; is specified.
 ; 
 ; defval.color 
@@ -42,12 +44,12 @@ showid: 1
 [defval]
 list: 1
 add: 1
-change-0: 1
-change-1: 2
-change-2: 1
-change-4: 10
-change-6: 5
-change: 2
+move-0: 1
+move-1: 2
+move-2: 1
+move-4: 10
+move-6: 5
+move: 2
 sort: title
 color: green
 
@@ -58,10 +60,9 @@ color: green
 ; be printed before all results in that catagory.
 ;
 ; find.edits
-; How many characters that may be replaced to try to match a value. May be good
-; if you're not sure of how it's spelled. Warning: When searching for a value
-; of few characeters (less than five or so), even a low number here will match
-; -a lot- of items, so keep that in mind. Hard coded highest for edits is 10.
+; The number of characters that are allowed to be edited when searching for an
+; item. Max is 10. Higher than 2 or 3 will produce a lot of results, especally
+; when the search string is short (less than five or six characters).
 [find]
 showcats: 1
 edits: 0
@@ -78,7 +79,8 @@ edits: 0
 6: Books I want to read
 8: Things to do before I turn 25
 life goals: Things to do before I die
-9: Remember
+9: Remeber
+sire todo: sire TODO
 wiki: wiki
 buy: Things to buy
 write: Things I want to write about

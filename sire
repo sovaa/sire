@@ -18,12 +18,15 @@ There is NO WARRANTY, to the extent permitted by law.'''
 
 C = { 
     'default' : "\033[0m",
+    'd'       : "\033[0m",
     'bold'    : "\033[1m",
+    'b'       : "\033[1m",
     'red'     : "\033[31m",
     'green'   : "\033[32m",
     'yellow'  : "\033[33m",
     'blue'    : "\033[34m",
     'magenta' : "\033[35m",
+    'm'       : "\033[35m",
     'cyan'    : "\033[36m",
 }
 
@@ -460,7 +463,8 @@ def change(db, conf, id, val_orig):
 
 	    cat = getcat(db, i)
 	    old = db[cat][i]
-	    print "Changed item '" + i + "' from '" + old + "' to '" + val + "'."
+
+	    print "Changed item '"+C['b']+i+C['d']+"' from '"+C['m']+old+C['d']+"' to '" + C['m']+val+C['d']+"'."
             db[cat][i] = val
 
     savedb(db)

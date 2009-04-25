@@ -11,6 +11,7 @@ Version 0.1.6
 	  -c). E.g. 'sire -c 20 "%(#)"', is the same as 'sire -c 20 "%(20)"'.
 	* Added support for comma seperated list of IDs when using change
 	  (--change, -c).
+	* Added some colors to the output when using change (--change, -c).
 
 Version 0.1.5
     Fri Apr 24 17:27:19 CEST 2009: scorch
