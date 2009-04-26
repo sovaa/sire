@@ -1,45 +1,63 @@
+# Examples:
 
-Examples:
-    # add to the default catagory:
-    sire -a "rule the earth"
-    sire -a eat
-    sire -a sleep
+# add to the default catagory:
+sire -a "rule the earth"
+sire -a eat
+sire -a sleep
 
-    # add to catagory 3:
-    sire -a "build a bunker" 3
-    sire -a profit 3
+# add to catagory 3:
+sire -a "build a bunker" 3
+sire -a profit 3
 
-    # add to catagory "life goals":
-    sire -a "world domination" "life goals"
+# add to catagory "life goals":
+sire -a "world domination" "life goals"
 
-    # list all items in all catagories
-    sire -l all
+# list all items in all catagories
+sire -l all
 
-    # list all items in catagory "life goals"
-    sire -l "life goals"
+# list all items in catagory "life goals"
+sire -l "life goals"
 
-    # list all items in the default catagory (specified in sirerc)
-    sire
-    sire -l
+# list all items in the default catagory (specified in sirerc)
+sire
+sire -l
 
-    # only list all catagory titles
-    sire -l titles
+# only list all catagory titles
+sire -l titles
 
-    # delete item with ID '39'
-    sire -d 39
+# delete item with ID '39'
+sire -d 39
 
-    # delete items with ID '12', '2023' and '45'
-    sire -d 12 2023 45
+# delete items with ID '12', '2023' and '45'
+sire -d 12 2023 45
 
-    # change the catagory of a title with ID '23' to catagory "life goals"
-    sire -c 23 "life goals"
+# move item with ID '23' to the catagory 'life goals'
+sire -m 23 "life goals"
 
-    # change the catagory of a title with ID '23' to catagory '3'
-    sire -c 23 3
+# move item with ID '23' to the catagory '3'
+sire -m 23 3
 
-    # change the catagory of a title with ID '569' to the default catagory (specified in sirerc)
-    sire -c 569
+# move item with ID '569' to the default catagory (specified in sirerc)
+sire -c 569
 
-    # search for 'world domination' and 'eat'
-    sire -f "world domination"
-    sire -f eat
+# search for 'world domination' and 'eat'
+sire -f "world DomINAatiON"
+sire -f eat
+
+# change the value of the item with ID '34'
+sire -c 34 "new value for 34"
+
+# insert some text before the value of the item with ID '34' using 
+# references ('%(<number>)'), and self references ('%(#)')
+sire -c 34 "text before the item %(34)"
+sire -c 34 "text before the item %(#)"
+
+# use the value of another item in this item's value
+sire -c 34 "%(204)"
+
+# change the value of the items with IDs '12','13','14','402','94'
+sire -c 12,13,14,402,94 "some text, may have %(102) and %(40) and so on"
+
+# combine self references, ordinary references and multiple IDs
+sire -c 2,30,409 "%(300), %(20) is crap, but %(#) and %(2) is great!"
+
