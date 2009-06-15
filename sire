@@ -416,7 +416,7 @@ def delete(db, ids):
         deleted = False
         for d in db:
             if db[d].has_key(id):
-                #del db[d][id]
+                del db[d][id]
                 deleted = True
 		break
 
