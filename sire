@@ -416,13 +416,14 @@ def delete(db, ids):
         deleted = False
         for d in db:
             if db[d].has_key(id):
+		title = db[d][id]
                 del db[d][id]
                 deleted = True
 		break
 
         if deleted:
             print "Deleted item with ID '" + C['g'] + id + C['d'] + "' and title '" +  \
-		C['g'] + db[d][id] + C['d'] + "' from catagory '" + C['g'] + d + C['d'] + "'."
+		C['g'] + title + C['d'] + "' from catagory '" + C['g'] + d + C['d'] + "'."
         else:
             print C["bold"] + C["red"] + "Error: " + C["default"] + "Item with ID " + id + " not found."
 
