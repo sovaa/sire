@@ -6,6 +6,8 @@
 * Clean up the code.
 * make listdupes faster. current complexity is O(n^4)!11
 * command line option when searching (--find, -f) to specify the number of allowed edits
+* fix mixed up catagory IDs being printed when adding a duplicate item
+* date when added to catagory
 --- * add support for easy self referencing when using change (--change, -c)
 --- * add support for comma seperated list when using change (--change, -c)
 --- * rename change (--change, -c) to move (--move, -m) 
