@@ -1,4 +1,3 @@
-* remove duplicates
 * show how long an item was in a catagory when changed/deleted
 * command line option to hide ID (--noid, -n?)
 * possibility to use either flat file database or mysql (specified in config file)
