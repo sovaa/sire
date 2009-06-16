@@ -12,7 +12,11 @@ Version 0.1.6
 	* Added support for comma seperated list of IDs when using change
 	  (--change, -c).
 	* Added some colors to the output when using change (--change, -c).
+
+    Tue Jun 16 02:51:22 CEST 2009: scorch
 	* When deleting an item, ID, title and catagory of the item is shown.
+	* Shows more info when changins titles.
+	* Fixed some error messages.
 
 Version 0.1.5
     Fri Apr 24 17:27:19 CEST 2009: scorch

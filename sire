@@ -196,7 +196,7 @@ def parseconfig(conffile):
 # Print a catagory (status) description using bold and colors.
 def printcatagory(catagory, config):
     if ("catagories." + catagory) not in config.keys():
-        print "There is no Catagory description for catagory '" + catagory + "'!"
+        error("There is no Catagory description for catagory '"+c(catagory)+"'!")
         sys.exit(1)
 
     if not ("colors." + catagory) in config.keys():
@@ -383,7 +383,7 @@ def list(db, config, catagory):
 # Add an item to the database.
 def add(db, config, name, catagory):
     if ("catagories." + catagory) not in config.keys():
-        print "Specified catagory does not exist."
+        error("Specified catagory does not exist.")
         sys.exit(1)
 
     l = []
@@ -422,15 +422,15 @@ def delete(db, ids):
 		break
 
         if deleted:
-            print "Deleted item with ID '" + C['g'] + id + C['d'] + "' and title '" +  \
-		C['g'] + title + C['d'] + "' from catagory '" + C['g'] + d + C['d'] + "'."
+            print "Deleted item with ID '"+c(id)+"' and title '"+c(title)+"' from catagory '"+c(d)+"'."
         else:
-            print C["bold"] + C["red"] + "Error: " + C["default"] + "Item with ID " + id + " not found."
+            error("Item with ID '"+c(id)+"' not found.")
 
     savedb(db)
 
 
-
+def error(text):
+    print C["bold"] + C["red"] + "Error: " + C["default"] + text
 
 
 # Save a changed database.
@@ -468,7 +468,7 @@ def change(db, conf, id, val_orig):
 	    cat = getcat(db, i)
 	    old = db[cat][i]
 
-	    print "Changed item '"+C['b']+i+C['d']+"' from '"+C['m']+old+C['d']+"' to '" + C['m']+val+C['d']+"'."
+	    print "Changed item '"+c(i)+"' from '"+c(old)+"' to '" + c(val)+"'."
             db[cat][i] = val
 
     else:
@@ -477,7 +477,7 @@ def change(db, conf, id, val_orig):
 	    cat = getcat(db, i)
 	    old = db[cat][i]
 
-	    print "Changed item '"+C['b']+i+C['d']+"' from '"+C['m']+old+C['d']+"' to '" + C['m']+val+C['d']+"'."
+	    print "Changed item '"+c(i)+"' from '"+c(old)+"' to '" + c(val)+"'."
             db[cat][i] = val
 
     savedb(db)
@@ -510,12 +510,13 @@ def move(db, conf, id, newcat):
 
     del db[d][id]
 
-    print "Moved item with ID '"+id+"' from '"+d+"' to '"+newcat+"'."
+    print "Moved item with ID '"+c(id)+"' and title '"+c(title)+"' from catagory '"+c(d)+"' to '"+c(newcat)+"'."
 
     savedb(db)
 
 
-
+def c(text):
+    return C['g'] + text + C['d']
 
 
 # Get the catagory of a title with a certain ID.
@@ -525,7 +526,7 @@ def getcat(db, id):
             return d
     
     # We didn't find it.
-    print "Catagory of title with ID '"+id+"' not found."
+    print "Catagory of title with ID '"+c(id)+"' not found."
     sys.exit(1)
 
 
@@ -536,7 +537,7 @@ def getcat(db, id):
 def main():
     # Check if config and database files exists and are read- and writeable.
     if not os.path.exists(DB) or not os.path.exists(CONFIG):
-        print "Database and/or config file not found. Should be in ~/.sire/!"
+        print C['r'] + "Error: " + C['d'] + "Database and/or config file not found. Should be in ~/.sire/!"
         sys.exit(1)
 
     # First read the database from the file.
