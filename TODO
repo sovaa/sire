@@ -5,6 +5,9 @@
 * make listdupes faster. current complexity is O(n^4)!11
 * Clean up the code.
 
+0.1.8
+* support for (--time, -t) for listing items no older than specified value
+
 0.1.7:
 --- * show how long an item was in a catagory when changed/deleted
 --- * sort using time in catagory
