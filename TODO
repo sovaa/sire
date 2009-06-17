@@ -6,11 +6,14 @@
 * Clean up the code.
 
 0.1.7:
-* show how long an item was in a catagory when changed/deleted
+--- * show how long an item was in a catagory when changed/deleted
+--- * sort using time in catagory
+* backup database before doing -anything-
 * command line option to hide ID (--noid, -n?)
 * Clear categories (save backup?)
 * command line option when searching (--find, -f) to specify the number of allowed edits
-* date when added to catagory
+--- * date when added to catagory
+--- * support for (--info, -i) to show information of an item (time added, how long in catagory etc)
 
 0.1.6
 --- * fix mixed up catagory IDs being printed when adding a duplicate item

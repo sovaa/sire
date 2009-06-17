@@ -34,8 +34,8 @@ C = {
 # Define arguemnts.
 opts, args = getopt.getopt(
     sys.argv[1:], # Arguements from commandline.
-    'lhcvfa:d:m:',  # Short arguments.
-    ['list', 'change', 'add=', 'move=', 'delete=', 'find', 'help', 'version'] # Long arguments.
+    'lhcvfi:a:d:m:',  # Short arguments.
+    ['list', 'change', 'info=', 'add=', 'move=', 'delete=', 'find', 'help', 'version'] # Long arguments.
 )
 
 
@@ -550,9 +550,92 @@ def getcat(db, id):
             return d
     
     # We didn't find it.
-    print "Catagory of title with ID '"+c(id)+"' not found."
+    error("Catagory of title with ID '"+c(id)+"' not found.")
     sys.exit(1)
 
+
+
+
+
+# Prints formated table with info about items with specified IDs.
+def info(db, conf, ids):
+    sl_id = 1
+    sl_title = 1
+    sl_date = 1
+    sl_date_added = 1
+    sl_category = 1
+
+    items = []
+
+    for id in ids:
+	found = False
+        for d in db:
+	    if id in db[d].keys():
+		found = True
+		title = db[d][id][1]
+		date = db[d][id][0]
+		da = time.gmtime(int(date))
+		date_added = str(da[0]) + "-" + str(da[1]) + "-" + str(da[2]) + ", " + \
+		    str(da[3]) + ":" + str(da[4]) + ":" + str(da[5])
+		date_in_cat = timepassed(date)
+		cat = conf["catagories." + d]
+
+		items.append((id, title, cat, date_added, date_in_cat))
+
+		if len(id) > sl_id:
+		    sl_id = len(id)
+
+		if len(title) > sl_title:
+		    sl_title = len(title)
+
+		if len(date_added) > sl_date_added:
+		    sl_date_added = len(date_added)
+
+		if len(cat) > sl_category:
+		    sl_category = len(cat)
+
+		break;
+	
+	if not found:
+	    error("There is no item with ID '" + c(id) + "'.")
+
+    print
+
+    sys.stdout.write("ID")
+    for i in (range(sl_id+1)):
+	sys.stdout.write(" ")
+    sys.stdout.write("TITLE")
+    for i in (range(sl_title - 2)):
+	sys.stdout.write(" ")
+    sys.stdout.write("CATEGORY")
+    for i in (range(sl_category - 5)):
+	sys.stdout.write(" ")
+    sys.stdout.write("DATE ADDED")
+    for i in (range(sl_date_added - 7)):
+	sys.stdout.write(" ")
+    sys.stdout.write("TIME IN CATAGORY")
+
+    print
+    print
+    for item in items:
+        sys.stdout.write(item[0])
+        for i in (range(sl_id         - len(item[0]) + 3)):
+    	    sys.stdout.write(" ")
+
+        sys.stdout.write(item[1])
+        for i in (range(sl_title      - len(item[1]) + 3)):
+    	    sys.stdout.write(" ")
+
+        sys.stdout.write(item[2])
+        for i in (range(sl_category   - len(item[2]) + 3)):
+	    sys.stdout.write(" ")
+
+        sys.stdout.write(item[3])
+	for i in (range(sl_date_added - len(item[3]) + 3)):
+	    sys.stdout.write(" ")
+
+        print item[4][0]+"y", item[4][1]+"d", item[4][2]+"h", item[4][3]+"m", item[4][4]+"s"
+	
 
 
 
@@ -604,6 +687,14 @@ def main():
 
             title = sys.argv[2]
             add(db, config, title, catagory)
+
+	elif o in ("-i", "--info"):
+            if len(sys.argv) < 3:
+                usage()
+                sys.exit(1)
+
+	    id = sys.argv[2:]
+	    info(db, config, id)
 
         elif o in ("-d", "--delete"):
             if len(sys.argv) < 3:
