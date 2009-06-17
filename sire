@@ -678,6 +678,10 @@ def main():
         list(db, config, None, False)
         sys.exit()
 
+    if len(sys.argv) == 2 and sys.argv[1] == "-n" or sys.argv[1] == "--noid":
+        list(db, config, None, True)
+        sys.exit()
+
     # What to do with the different arguments.
     for o, a in opts:
         if o in ("-h", "--help"):

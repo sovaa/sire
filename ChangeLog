@@ -1,3 +1,6 @@
+Wed Jun 17 22:29:47 CEST 2009: scorch
+	* fixed bug when using only (--noid, -n) without (--list, -l)
+
 Wed Jun 17 20:50:51 CEST 2009: scorch
 	* support for (--info, -i) to show information of an item (time added, 
 	  how long in catagory etc)
