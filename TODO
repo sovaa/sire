@@ -1,12 +1,19 @@
+1.0.0:
+* possibility to use either flat file database or mysql (specified in config file)
+
+0.2.0:
+* make listdupes faster. current complexity is O(n^4)!11
+* Clean up the code.
+
+0.1.7:
 * show how long an item was in a catagory when changed/deleted
 * command line option to hide ID (--noid, -n?)
-* possibility to use either flat file database or mysql (specified in config file)
 * Clear categories (save backup?)
-* Clean up the code.
-* make listdupes faster. current complexity is O(n^4)!11
 * command line option when searching (--find, -f) to specify the number of allowed edits
-* fix mixed up catagory IDs being printed when adding a duplicate item
 * date when added to catagory
+
+0.1.6
+--- * fix mixed up catagory IDs being printed when adding a duplicate item
 --- * add support for easy self referencing when using change (--change, -c)
 --- * add support for comma seperated list when using change (--change, -c)
 --- * rename change (--change, -c) to move (--move, -m) 

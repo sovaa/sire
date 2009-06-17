@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import string, sys, getopt, os, re, ConfigParser
+import string, sys, getopt, os, re, ConfigParser, time
 import Apse # for approximate searching
 
 HOME = os.path.expanduser("~")
@@ -79,7 +79,7 @@ def version():
 def itemexists(db, item):
     for key in db.keys():
         for val in db[key].values():
-            if val == item:
+            if val[1] == item:
                 return True
 
     return False
@@ -218,19 +218,17 @@ def printcatagory(catagory, config):
 # FIXME: I don't want to load a 500MB file each time I wan't to check what I can watch.
 def parsedb(dbfile):
     db = {}
-    id = 0
     f = file(dbfile, 'r')
     for line in f.readlines():
-        parts = line.split(":", 2)
-        parts[2] = parts[2][:-1]
+        parts = line.split(":", 3)
+        parts[3] = parts[3][:-1]
 
         if not db.has_key(parts[0]):
-            db[parts[0]] = {parts[1] : parts[2]}
+            db[parts[0]] = {parts[1] : (parts[2], parts[3])}
 
         else:
-            db[parts[0]][parts[1]] = parts[2]
+            db[parts[0]][parts[1]] = (parts[2], parts[3])
 
-        id += 1
 
     f.close()
     return db
@@ -253,17 +251,19 @@ def listdupes(db, conf, cat):
             while dvals != []:
                 dval = dvals.pop()
                 dkey = dkeys.pop()
+		dval = dval[1]
     
                 for dd in db:
-                    if d is dd:
-                        continue
-    
                     ddvals = db[dd].values()
                     ddkeys = db[dd].keys()
     
                     while ddvals != []:
                         ddval = ddvals.pop()
                         ddkey = ddkeys.pop()
+			ddval = ddval[1]
+
+			if dkey is ddkey:
+			    continue
     
                         if dval == ddval:
                             if dkey not in dupeids:
@@ -286,12 +286,13 @@ def listdupes(db, conf, cat):
         while dvals != []:
             dval = dvals.pop()
             dkey = dkeys.pop()
+	    dval = dval[1]
 
             for (k, v) in zip(dkeys, dvals):
-                if dval == v:
+                if dval == v[1]:
                     dupeids.append(dval)
                     print dkey, dval, "(%s)" % cat
-                    print k, v, "(%s)" % cat
+                    print k, v[1], "(%s)" % cat
                     print
 
 
@@ -306,7 +307,7 @@ def listdupes(db, conf, cat):
 def list(db, config, catagory):
     # Nothing in database.
     if db == {}:
-        print "Empty."
+        error("Your database is empty.")
         sys.exit()
 
     # Only print the catagory titles.
@@ -332,7 +333,7 @@ def list(db, config, catagory):
 
     for catagory in dbs:
         if catagory not in db.keys():
-            print "Empty catagory."
+            error("Empty catagory '"+c(catagory)+"'.")
             sys.exit(1)
 
         dbsel = db[catagory].items()
@@ -350,15 +351,18 @@ def list(db, config, catagory):
         if sortmethod is not False:
             # Sort by specified method.
             if sortmethod == "title":
-                dbsel = sorted(db[catagory].items(), key=lambda (k,v): (v.lower(),k))
+                dbsel = sorted(db[catagory].items(), key=lambda (k,v): (v[1].lower(),k))
             elif sortmethod == "id":
-                dbsel = sorted(db[catagory].items(), key=lambda (k,v): (int(k),v))
+                dbsel = sorted(db[catagory].items(), key=lambda (k,v): (int(k),v[1]))
+            elif sortmethod == "time":
+                dbsel = sorted(db[catagory].items(), key=lambda (k,v): (v[0], k))
             else:
                 dbsel = db[catagory].items()
 
         printcatagory(catagory, config)
         for id, title in dbsel:
             # Make titles aligned.
+	    title = title[1]
             spacer = ''
             for i in range(0, 3 - len(id)):
                 spacer += ' '
@@ -397,8 +401,11 @@ def add(db, config, name, catagory):
 
     id = str(int(id) + 1)
 
+    # time.time() returns float, so throw away the ms, then convert to string for writing
+    date = str(int(time.time()))
+
     f = open(DB, 'a')
-    f.write(catagory + ":" + id + ":" + name + '\n')
+    f.write(catagory + ":" + id + ":" + date + ":" + name + '\n')
     f.close()
 
     if itemexists(db, name):
@@ -416,18 +423,29 @@ def delete(db, ids):
         deleted = False
         for d in db:
             if db[d].has_key(id):
-		title = db[d][id]
+		title = db[d][id][1]
+		date = db[d][id][0]
                 del db[d][id]
                 deleted = True
 		break
 
         if deleted:
+	    date = timepassed(date)
+
             print "Deleted item with ID '"+c(id)+"' and title '"+c(title)+"' from catagory '"+c(d)+"'."
+	    print "It was in that catagory for "+date[0], "years,", date[1], \
+		"days,", date[2], "hours,", date[3], "minutes and", date[4], "seconds."
+
+
         else:
             error("Item with ID '"+c(id)+"' not found.")
 
     savedb(db)
 
+def timepassed(date):
+    date = int(time.time()- int(date))
+    return (str(date/60/60/24/365), str(date/60/60/24 % 365), \
+	str(date/60/60 % 24), str(date/60 % 60), str(date % 60))
 
 def error(text):
     print C["bold"] + C["red"] + "Error: " + C["default"] + text
@@ -438,7 +456,7 @@ def savedb(db):
     f = open(DB, 'w')
     for d in db:
         for id in db[d]:
-            f.write(d + ":" + id + ":" + db[d][id] + "\n")
+            f.write(d + ":" + id + ":" + db[d][id][0] + ":" + db[d][id][1] + "\n")
 
     f.close()
 
@@ -457,28 +475,30 @@ def change(db, conf, id, val_orig):
 	    val = val_orig
 	    for v in res:
 		if not cmp(v, '#'):
-		    rval = db[getcat(db, i)][i]
+		    rval = db[getcat(db, i)][i][1]
 
 		else:
-		    rval = db[getcat(db, v)][v]
+		    rval = db[getcat(db, v)][v][1]
 
 		p = re.compile('\%\(' + v + '\)')
 		val = p.sub(rval, val)
 
 	    cat = getcat(db, i)
-	    old = db[cat][i]
+	    old = db[cat][i][1]
+	    date = db[cat][i][0]
 
 	    print "Changed item '"+c(i)+"' from '"+c(old)+"' to '" + c(val)+"'."
-            db[cat][i] = val
+            db[cat][i] = (date, val)
 
     else:
 	for i in id:
 	    val = val_orig
 	    cat = getcat(db, i)
-	    old = db[cat][i]
+	    old = db[cat][i][1]
+	    date = db[cat][i][0]
 
 	    print "Changed item '"+c(i)+"' from '"+c(old)+"' to '" + c(val)+"'."
-            db[cat][i] = val
+            db[cat][i] = (date, val)
 
     savedb(db)
 
@@ -501,16 +521,20 @@ def move(db, conf, id, newcat):
         print "No such catagory ('" + newcat + "'). Add it in the sirerc first."
         sys.exit(1)
 
-    title = db[d][id]
+    date = timepassed(db[d][id][0])
+    newdate = str(int(time.time()))
+    title = db[d][id][1]
 
     if db.has_key(newcat):
-        db[newcat][id] = title
+        db[newcat][id] = (newdate, title)
     else:
-        db[newcat] = dict([(id, title)])
+        db[newcat] = dict([(id, (newdate, title))])
 
     del db[d][id]
 
     print "Moved item with ID '"+c(id)+"' and title '"+c(title)+"' from catagory '"+c(d)+"' to '"+c(newcat)+"'."
+    print "It was in that catagory for "+date[0], "years,", date[1], \
+	"days,", date[2], "hours,", date[3], "minutes and", date[4], "seconds."
 
     savedb(db)
 
