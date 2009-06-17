@@ -1,6 +1,10 @@
 Wed Jun 17 20:50:51 CEST 2009: scorch
 	* support for (--info, -i) to show information of an item (time added, 
 	  how long in catagory etc)
+	* backup database before doing -anything-
+	* command line option when searching (--find, -f) to specify the number
+	  of allowed edits
+	* command line option to hide ID (--noid, -n)
 
 Tue Jun 16 02:51:22 CEST 2009: scorch
 	* When deleting an item, ID, title and catagory of the item is shown.
