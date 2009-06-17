@@ -79,8 +79,7 @@ edits: 0
 6: Books I want to read
 8: Things to do before I turn 25
 life goals: Things to do before I die
-9: Remeber
-sire todo: sire TODO
+9: Remember
 wiki: wiki
 buy: Things to buy
 write: Things I want to write about
@@ -96,8 +95,12 @@ gk: General Knowledge
 life goals: magenta
 9: cyan
 
-; What to sort by. May be 'none', 'id' or 'title'. Key is for 'catagory key'.
+; What to sort by. May be 'none', 'id', 'time' or 'title'. Key is for 
+; 'catagory key'. 'time' will sort for how long an item has been in the 
+; current catagory. When an item is moved from one catagory to another, the
+; time is reset to 0.
+; default is 'title'
 [sort]
 0: id
+2: time
 life goals: id
-write: id
