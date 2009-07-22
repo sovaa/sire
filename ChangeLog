@@ -1,3 +1,12 @@
+Wed Jul 22 15:23:35 CEST 2009: scorch
+	* support for (--no-color, -o) for skipping colors when printing
+	* little better support for arguments, may now be somewhat mixed when
+	  using (--list, -l)
+
+Thu Jun 18 13:02:22 CEST 2009: scorch
+	* possibility to use either flat file database or mysql (specified in 
+	  config file)
+
 Wed Jun 17 22:29:47 CEST 2009: scorch
 	* fixed bug when using only (--noid, -n) without (--list, -l)
 

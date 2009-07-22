@@ -1,5 +1,5 @@
 1.0.0:
-* possibility to use either flat file database or mysql (specified in config file)
+* dunno
 
 0.2.0:
 * make listdupes faster. current complexity is O(n^4)!11
@@ -7,6 +7,9 @@
 
 0.1.8
 * support for (--time, -t) for listing items no older than specified value
+--- * support for (--no-color, -o) for skipping colors when printing
+* better argument support
+--- * possibility to use either flat file database or mysql (specified in config file)
 
 0.1.7:
 --- * show how long an item was in a catagory when changed/deleted
