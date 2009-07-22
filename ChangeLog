@@ -1,5 +1,7 @@
 Wed Jul 22 15:23:35 CEST 2009: scorch
 	* support for (--no-color, -o) for skipping colors when printing
+	* support for (--no-catagory, -t) for skipping catagory title when
+	  listing
 	* little better support for arguments, may now be somewhat mixed when
 	  using (--list, -l)
 

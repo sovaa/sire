@@ -6,6 +6,7 @@
 * Clean up the code.
 
 0.1.8
+--- * support for (--no-catagory, -t) for skipping catagory title when listing
 * support for (--time, -t) for listing items no older than specified value
 --- * support for (--no-color, -o) for skipping colors when printing
 * better argument support

@@ -35,8 +35,8 @@ C = {
 # Define arguemnts.
 opts, args = getopt.getopt(
     sys.argv[1:], # Arguements from commandline.
-    'e:nl:hocvfiadm',  # Short arguments.
-    ['no-color', 'edits=', 'noid', 'list=', 'change', 'info', 'add', 'move', 'delete', 'find', 'help', 'version'] # Long arguments.
+    'e:nl:hotcvfiadm',  # Short arguments.
+    ['no-catagory', 'no-color', 'edits=', 'noid', 'list=', 'change', 'info', 'add', 'move', 'delete', 'find', 'help', 'version'] # Long arguments.
 )
 
 
@@ -345,7 +345,7 @@ def listdupes(db, conf, cat):
 
 
 # List either all categories or only the default category.
-def list(db, config, category, noid, nocolor):
+def list(db, config, category, noid, nocolor, nocat):
     if flatfile(config):
         # Nothing in database.
         if db == {}:
@@ -425,8 +425,9 @@ def list(db, config, category, noid, nocolor):
                 else:
                     dbsel = dbsel
 
-    
-        printcategory(category, config, nocolor)
+	if not nocat: 
+            printcategory(category, config, nocolor)
+
 	if flatfile(config):
             for id, title in dbsel:
                 # Make titles aligned.
@@ -897,17 +898,10 @@ def main():
 
     # For (--noid, -n).
     noid = False
-
+    nocat = False
     nocolor = False
 
-    # If no argument given, list items of default category.
-    if len(sys.argv) == 1:
-        list(db, config, None, False)
-        sys.exit()
 
-    if len(sys.argv) == 2 and (sys.argv[1] == "-n" or sys.argv[1] == "--noid"):
-        list(db, config, None, True)
-        sys.exit()
 
     # What to do with the different arguments.
     for o, a in opts:
@@ -919,12 +913,15 @@ def main():
 	    noid = True
 	    continue
 
+	elif o in ("-t", "--no-catagory"):
+	    nocat = True
+	    continue
+
 	elif o in ("-o", "--no-color"):
 	    nocolor = True
 	    continue
 
         elif o in ("-l", "--list"):
-	    dolist = True
             category = a
 	    continue
 
@@ -1032,8 +1029,9 @@ def main():
             usage()
             sys.exit(1)
 
-    if dolist:
-	list(db, config, category, noid, nocolor)
+    # If no argument given, list items of default category.
+    list(db, config, None, noid, nocolor, nocat)
+    sys.exit()
 
     return
 
