@@ -7,8 +7,10 @@
 
 0.1.8
 --- * support for (--no-catagory, -t) for skipping catagory title when listing
-* support for (--time, -t) for listing items no older than specified value
+--- * support for (--no-newline, -w) for printing ", " instead of newlines when listing
 --- * support for (--no-color, -o) for skipping colors when printing
+--- * change (--noid, -n) to (--no-id, -n)
+* support for (--time, -u) for listing items no older than specified value
 * better argument support
 --- * possibility to use either flat file database or mysql (specified in config file)
 

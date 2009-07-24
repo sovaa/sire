@@ -1,3 +1,8 @@
+Fri Jul 24 23:54:32 CEST 2009: scorch
+	* support for (--no-newline, -w) for printing ", " instead of newlines
+	  when listing
+	* change (--noid, -n) to (--no-id, -n)
+
 Wed Jul 22 15:23:35 CEST 2009: scorch
 	* support for (--no-color, -o) for skipping colors when printing
 	* support for (--no-catagory, -t) for skipping catagory title when

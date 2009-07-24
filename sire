@@ -35,8 +35,8 @@ C = {
 # Define arguemnts.
 opts, args = getopt.getopt(
     sys.argv[1:], # Arguements from commandline.
-    'e:nl:hotcvfiadm',  # Short arguments.
-    ['no-catagory', 'no-color', 'edits=', 'noid', 'list=', 'change', 'info', 'add', 'move', 'delete', 'find', 'help', 'version'] # Long arguments.
+    'we:nl:hotcvfiadm',  # Short arguments.
+    ['no-newline', 'no-catagory', 'no-color', 'edits=', 'no-id', 'list=', 'change', 'info', 'add', 'move', 'delete', 'find', 'help', 'version'] # Long arguments.
 )
 
 
@@ -171,7 +171,7 @@ def approxsearch(db, conf, edits, sstr):
 	    if showcats:
 		if old_cat is None or res[3] != old_cat:
 		    print
-		    printcategory(res[3], conf)
+		    printcategory(res[3], conf, nocolor)
 		    old_cat = res[3]
 
             # Make titles aligned.
@@ -345,7 +345,7 @@ def listdupes(db, conf, cat):
 
 
 # List either all categories or only the default category.
-def list(db, config, category, noid, nocolor, nocat):
+def list(db, config, category, noid, nocolor, nocat, nonewline):
     if flatfile(config):
         # Nothing in database.
         if db == {}:
@@ -361,9 +361,14 @@ def list(db, config, category, noid, nocolor, nocat):
     # Only print the category titles.
     if category == "titles":
         for title in alldbs:
-            printcategory(title, config)
+            printcategory(title, config, nocolor)
 
         sys.exit()
+
+    if nonewline:
+	newline = ", "
+    else:
+	newline = "\n"
 
     # FIXME sql
     # List duplicates.
@@ -375,7 +380,6 @@ def list(db, config, category, noid, nocolor, nocat):
             listdupes(db, config, sys.argv[3])
 
         sys.exit()
-
 
     if category == "all":  dbs = alldbs
     elif category == None: dbs = config["defval.list"]
@@ -458,6 +462,7 @@ def list(db, config, category, noid, nocolor, nocat):
 
 	# SQL
 	else:
+	    output = ''
             for id, title, date, cat in dbsel:
                 # Make titles aligned.
 		id = str(id)
@@ -466,24 +471,24 @@ def list(db, config, category, noid, nocolor, nocat):
 		    spacer += ' '
 
                 # Showing ID when listing is optional.
-                if "general.showid" not in config.keys():
-                    print title
-
-		elif noid:
-		    print title
+                if "general.showid" not in config.keys() or noid:
+                    output += title + newline
             
                 elif config["general.showid"] == '1':
 		    if not nocolor:
-			print C['bold'] + id + C['default'], spacer + ':', title
+			output += C['bold'] + id + C['default'] + ' ' + spacer + ': ' + title + newline
 		    else:
-			print id, spacer + ':', title
+			output += id + ' ' + spacer + ': ' + title + newline
 
 	        else:
-		    print title
+		    output += title + newline
  
-            # For newline separator between items of different statuses.
-            print
+    output = output.strip()
+    if output[-1] == ',':
+    	output = output[:-1]
 
+    print output
+    return
 
 
 # Add an item to the database.
@@ -900,6 +905,9 @@ def main():
     noid = False
     nocat = False
     nocolor = False
+    catagory = None
+    nonewline = False
+    dolist = True
 
 
 
@@ -909,7 +917,7 @@ def main():
             usage()
             sys.exit()
 
-	elif o in ("-n", "--noid"):
+	elif o in ("-n", "--no-id"):
 	    noid = True
 	    continue
 
@@ -922,10 +930,16 @@ def main():
 	    continue
 
         elif o in ("-l", "--list"):
-            category = a
+            catagory = a
+	    dolist = True
+	    continue
+
+	elif o in ("-w", "--no-newline"):
+	    nonewline = True
 	    continue
 
         elif o in ("-a", "--add"):
+	    dolist = False
             if len(sys.argv) < 3:
                 usage()
                 sys.exit(1)
@@ -938,24 +952,30 @@ def main():
 
             title = sys.argv[2]
             add(db, config, title, category)
+	    continue
 
 	elif o in ("-i", "--info"):
+	    dolist = False
             if len(sys.argv) < 3:
                 usage()
                 sys.exit(1)
 
 	    id = sys.argv[2:]
 	    info(db, config, id)
+	    continue
 
         elif o in ("-d", "--delete"):
+	    dolist = False
             if len(sys.argv) < 3:
                 usage()
                 sys.exit(1)
     
             id = sys.argv[2:]
             delete(db, config, id)
+	    continue
 
 	elif o in ("-c", "--change"):
+	    dolist = False
 	    if len(sys.argv) < 4:
 		usage()
 		sys.exit(1)
@@ -964,9 +984,10 @@ def main():
 	    val = sys.argv[3]
 
 	    change(db, config, id, val)
-	    
+	    continue
 
         elif o in ("-m", "--move"):
+	    dolist = False
             if len(sys.argv) < 3:
                 usage()
                 sys.exit(1)
@@ -1000,8 +1021,10 @@ def main():
                 newcat = sys.argv[3]
 
             move(db, config, id, newcat)
+	    continue
 
 	elif o in ("-e", "--edits"):
+	    dolist = False
             if len(sys.argv) < 5:
                 usage()
                 sys.exit(1)
@@ -1011,6 +1034,7 @@ def main():
 	    continue
 	    
         elif o in ("-f", "--find"):
+	    dolist = False
             if len(sys.argv) < 3:
                 usage()
                 sys.exit(1)
@@ -1021,6 +1045,8 @@ def main():
 	    else:
                 approxsearch(db, config, 0, sys.argv[2:])
 
+	    continue
+
         elif o in ("-v", "--version"):
             version()
             sys.exit()
@@ -1030,7 +1056,8 @@ def main():
             sys.exit(1)
 
     # If no argument given, list items of default category.
-    list(db, config, None, noid, nocolor, nocat)
+    if dolist:
+        list(db, config, catagory, noid, nocolor, nocat, nonewline)
     sys.exit()
 
     return
