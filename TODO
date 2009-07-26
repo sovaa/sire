@@ -5,8 +5,9 @@
 
 0.2.0:
 * updated the examples
-* (--help, -h) shows correct usage
+* support for (--time, -u) for listing items no older than specified value
 * support for adding new categories when using mysql
+--- * (--help, -h) shows correct usage
 --- * support for (--force, -F) when warnings are stopping execution
 --- * support to specify duplicates policy in config file
 --- * support for (--add-category, -g) for adding new categories (currently only for flatfile)
@@ -18,8 +19,7 @@
 --- * support for (--no-newline, -w) for printing ", " instead of newlines when listing
 --- * support for (--no-color, -o) for skipping colors when printing
 --- * change (--noid, -n) to (--no-id, -n)
-* support for (--time, -u) for listing items no older than specified value
-* better argument support using optparse
+--- * better argument support using optparse
 --- * possibility to use either flat file database or mysql (specified in config file)
 
 0.1.7:

@@ -4,6 +4,7 @@ import string, sys, getopt, os, re, ConfigParser, time, shutil
 import Apse # for approximate searching
 import MySQLdb # database
 from optparse import OptionParser
+from optparse import OptionGroup
 
 HOME = os.path.expanduser("~")
 PATH = HOME + "/.sire/"
@@ -36,80 +37,94 @@ C = {
 }
 
 # Define arguemnts.
-opts, args = getopt.gnu_getopt(
-    sys.argv[1:], # Arguements from commandline.
-    'Fqku:y:gp:we:nl:hotcvfiad:m',  # Short arguments.
-    ['force', 'quiet', 'temp-add', 'category-title=', 'category-id=', 'add-category', 'profile=', 'no-newline', 'no-category', 'no-color', 'edits=', 'no-id', 'list=', 'change', 'info', 'add', 'move', 'delete=', 'find', 'help', 'version'] # Long arguments.
-)
-
+#opts, args = getopt.gnu_getopt(
+#    sys.argv[1:], # Arguements from commandline.
+#    'Fqku:y:gp:we:nl:hotcvfiad:m',  # Short arguments.
+#    ['force', 'quiet', 'temp-add', 'category-title=', 'category-id=', 'add-category', 'profile=', 'no-newline', 'no-category', 'no-color', 'edits=', 'no-id', 'list=', 'change', 'info', 'add', 'move', 'delete=', 'find', 'help', 'version'] # Long arguments.
+#)
 
 class miscfunctions:
     def __init__(self):
-	self.quiet = False
-	self.color = True
-	self.force = False
+	self.map = {'force': 0, 'verbose': 1, 'color': 2, 'id': 3, 'newline': 4, 'category': 5, 'edits': 6}
+	self.info = [False, 1, True, True, True, True, 0]
 	return
 
-    def setforce(self, bool):
-	self.force = bool
+    def set(self, what, value):
+	self.info[self.map[what]] = value
 	return
 
-    def setquiet(self, bool):
-	self.quiet = bool
-	return
+    def get(self, what):
+	return self.info[self.map[what]]
 
-    def setcolor(self, bool):
-	self.color = bool
-	return
 
-    def getforce(self):
-	return self.force
 
-    def getquiet(self):
-	return self.quiet
-
-    def getcolor(self):
-	return self.color
+def parseargs():
+    parser = OptionParser()
+    helptext = [
+        "List the specified category.",
+        "Add an item to a category. If no destination (category in this case) is specified (using --destination, -D) the default add category will be used (specified in config file).",
+        "Specify to which category an item is to be added/moved/etc., or a new value to be used when using --change, -c.",
+        "Delete specified comma separated IDs.",
+        "Show formated table with information about items with the specified comma separated IDs.",
+        "Find titles matching specified value.",
+        "Move title with specified ID to another category. If no destination (category in this case) is specified (using --destination, -D) the default move category will be used (specified in config file).",
+        "Change the title of one or more items with the specified comma separated IDs to a new value, specified using --destination, -D. Here the destination can contain %(#) for self referencing, or %(123) for referencing title with ID 123. See the examples for more information.",
+        "Hide ID when listing, even if specified in config file to show them.",
+        "Hide category title when listing a category.",
+        "Don't use any color/bold when printing.",
+        "Don't print newlines. Use ', ' instead of '\\n' (newline) when listing one or more categories.",
+        "Add a new category (will edit your config file). Use --destination, -D to specify the category ID.",
+        "Ignore warnings and continue execution anyway.",
+        "Show the current version.",
+        "Use an alternative profile. A profile name is the name of the config file and the database file. When an alternative profile is used, their config an db files will be located in ~/.sire/altdb/<name> and ~/.sire/altrc/<name>.",
+        "Specify the number of allowed edits to the search value when using --find, -f.",
+        "Be quiet. Don't print notices or warnings. Errors will still be printed.",
+        "Be verbose. Print notices, warnings and errors.",
+	"Same as -LINC (--no-color --no-id --no-newline --no-category)."
+    ]
+    
+    group = OptionGroup(parser, "Hide and/or change output options", "These options will hide or change different types of output.")
+    group.add_option("-I", "--no-id", action = "store_false", default = True, dest = "printid", help = helptext[8], metavar = "")
+    group.add_option("-C", "--no-category", action = "store_false", default = True, dest = "printcat", help = helptext[9], metavar = "")
+    group.add_option("-L", "--no-color", action = "store_false", default = True, dest = "printcolor", help = helptext[10], metavar = "")
+    group.add_option("-N", "--no-newline", action = "store_false", default = True, dest = "printnewline", help = helptext[11], metavar = "")
+    group.add_option("-H", "--hide-all", action = "store_true", default = False, dest = "hide", help = helptext[19], metavar = "")
+    group.add_option("-q", "--quiet", action = "store_const", const = 0, dest = "verbose", default = 1, help = helptext[17])
+    group.add_option("-V", "--verbose", action = "store_const", const = 2, dest = "verbose", default = 1, help = helptext[18])
+    parser.add_option_group(group)
+    
+    group = OptionGroup(parser, "Modify options", "These options will modify items in categories in some way.")
+    group.add_option("-a", "--add", dest = "add", help = helptext[1], metavar = "TITLE")
+    group.add_option("-d", "--delete", dest = "delete", help = helptext[3], metavar = "ID1[,ID2[...]]")
+    group.add_option("-m", "--move", type="int", dest = "move", help = helptext[6], metavar = "ID")
+    group.add_option("-c", "--change", dest = "change", help = helptext[7], metavar = "ID1[,ID2[...]]")
+    group.add_option("-A", "--add-category", dest = "addcat", help = helptext[12], metavar = "TITLE")
+    parser.add_option_group(group)
+    
+    group = OptionGroup(parser, "Printing options", "These options only prints information and does not modify anything.")
+    group.add_option("-f", "--find", dest = "find", help = helptext[5], metavar = "VALUE")
+    group.add_option("-e", "--edits", type="int", dest = "edits", help = helptext[16], metavar = "VALUE")
+    group.add_option("-i", "--info", dest = "info", help = helptext[4], metavar = "ID1[,ID2[...]]")
+    group.add_option("-l", "--list", dest = "list", help = helptext[0], metavar = "CATEGORY")
+    group.add_option("-v", "--version", action = "store_true", dest = "version", help = helptext[14])
+    parser.add_option_group(group)
+    
+    group = OptionGroup(parser, "Other options", "Options that does not fit in any other option group and is usually used together with other options.")
+    group.add_option("-D", "--destination", dest = "dest", help = helptext[2], metavar = "VALUE")
+    group.add_option("-p", "--profile", dest = "profile", help = helptext[15], metavar = "NAME")
+    group.add_option("-F", "--force", action = "store_true", dest = "force", help = helptext[13], metavar = "")
+    parser.add_option_group(group)
+    
+    return parser.parse_args()[0]
 
 
 misc = miscfunctions()
-
-def usage():
-    print '''Usage: [OPTION] [ARGUMENTS]
-    --list, -l [category]                        List either default category or a specified one.
-    --add, -a <value> [category]                 Add an item to a category.
-    --delete, -d <ID1[ ID2[ ...]]>               Delete one or more items.
-    --info, -i <ID1[ ID2[ ...]]>                 Show formated table with information about titles.
-    --find, -f <value1[ value2[ ...]]>           Find titles matching values.
-    --move, -m <ID> <catgory>                    Mode an item to another category.
-    --change, -c <ID1[,ID2[,...]]> <new value>   Change the title of one or more items.
-    --noid, -n                                   Don't show ID when listing, even if specified to do so in sirerc.
-    --edits, -e                                  Used -before- (--find, -f) to specify the number of edits allowed to search value.
-    --no-id, -n                                   Don't show ID when listing (used -before- (--list, -l)).
-    --category-title, -y
-    --category-id, -u
-    --add-category, -g
-    --force, -F
-    --help, -h                                   Show this help.
-    --version, -v                                Show the current version.
-
-For examples, see README.
-
-Files:
-    Configuration:
-    ~/.sire/sirerc
-
-    Database:
-    ~/.sire/siredb
-'''
-
-
-
 
 
 # Prints version number, licence and authors with email.
 def version():
     print NAME,VERSION,'\n',LICENCE,'\n\nWritten by: ',AUTHORS,EMAIL
+    return
 
 
 
@@ -226,7 +241,8 @@ def approxsearch(db, conf, edits, sstr):
             if showcats:
                 if old_cat is None or res[3] != old_cat:
                     print
-                    printcategory(res[3], conf)
+		    if misc.get('category'):
+                        printcategory(res[3], conf)
                     old_cat = res[3]
 
             # Make titles aligned.
@@ -235,7 +251,7 @@ def approxsearch(db, conf, edits, sstr):
                 spacer += ' '
 
             # Showing ID when listing is optional.
-            if "general.showid" not in conf.keys():
+            if "general.showid" not in conf.keys() or not misc.get('id'):
                 print res[1]
             
             elif conf["general.showid"] == '1':
@@ -252,8 +268,7 @@ def parseconfig(conffile):
     if not os.path.isfile(conffile):
 	f = file(conffile, 'w')
 	f.close()
-	if not quiet:
-	    error("Config file didn't exist. I created it for you.")
+	error("Config file didn't exist. I created it for you. Populate it before continuing.")
 	sys.exit(1)
 
     _config = {}
@@ -284,7 +299,7 @@ def printcategory(category, config):
     else:
         color = C[config["colors." + category]]
 
-    if misc.getcolor():
+    if misc.get('color'):
         print C["bold"], color, config["categories." + category], "('" + category + "')", C["default"]
     else:
         print "  " + config["categories." + category], "('" + category + "')"
@@ -415,7 +430,12 @@ def listdupes(db, conf, cat):
 
 
 # List either all categories or only the default category.
-def list(db, config, category, noid, nocat, nonewline):
+def list(db, config, category):
+    pnewline = misc.get('newline')
+    pcolor = misc.get('color')
+    pcat = misc.get('category')
+    pid = misc.get('id')
+
     if flatfile(config):
         # Nothing in database.
         if db == {}:
@@ -435,9 +455,8 @@ def list(db, config, category, noid, nocat, nonewline):
 
         sys.exit()
 
-    if nonewline:
-        newline = ", "
-    else:
+    newline = ", "
+    if pnewline:
         newline = "\n"
 
     # FIXME sql
@@ -499,7 +518,7 @@ def list(db, config, category, noid, nocat, nonewline):
                 else:
                     dbsel = dbsel
 
-        if not nocat: 
+        if pcat: 
             printcategory(category, config)
 
         if flatfile(config):
@@ -512,11 +531,11 @@ def list(db, config, category, noid, nocat, nonewline):
                     spacer += ' '
 
                 # Showing ID when listing is optional.
-                if "general.showid" not in config.keys() or noid:
+                if "general.showid" not in config.keys() or not pid:
                     output += title + newline
 
                 elif config["general.showid"] == '1':
-                    if misc.getcolor():
+                    if pcolor:
                         output += C['bold'] + id + C['default'] + spacer + ' : ' + title + newline
 
                     else:
@@ -536,11 +555,11 @@ def list(db, config, category, noid, nocat, nonewline):
                     spacer += ' '
 
                 # Showing ID when listing is optional.
-                if "general.showid" not in config.keys() or noid:
+                if "general.showid" not in config.keys() or not pid:
                     output += title + newline
             
                 elif config["general.showid"] == '1':
-                    if misc.getcolor():
+                    if pcolor:
                         output += C['bold'] + id + C['default'] + ' ' + spacer + ': ' + title + newline
                     else:
                         output += id + ' ' + spacer + ': ' + title + newline
@@ -566,12 +585,12 @@ def add(db, config, name, category, dbfile):
 
     if dup == "0" and itemexists(db, config, name):
         error("Item already exists in category '" + c(category) + "'.")
-	if not misc.getforce():
+	if not misc.get('force'):
             sys.exit(1)
 
     if dup == "1" and itemexistsincat(db, config, category, name):
         error("Item already exists in category '" + c(category) + "'.")
-	if not misc.getforce():
+	if not misc.get('force'):
             sys.exit(1)
 
     # time.time() returns float, so throw away the ms, then convert to string for writing
@@ -679,24 +698,24 @@ def timepassed(date):
         str(date/60/60 % 24), str(date/60 % 60), str(date % 60))
 
 def note(text):
-    if not misc.getquiet():
-	if misc.getcolor():
+    if misc.get('verbose') is 2:
+	if misc.get('color'):
 	    print C["bold"] + C["green"] + "Note: " + C["default"] + text
 	else:
 	    print "Note: " + text
     return
 
 def error(text):
-    if not misc.getquiet():
-	if misc.getcolor():
+    if misc.get('verbose') is not 0:
+	if misc.get('color'):
             print C["bold"] + C["red"] + "Error: " + C["default"] + text
 	else:
 	    print "Error: " + text
     return
 
 def warning(text):
-    if not misc.getquiet():
-	if misc.getcolor():
+    if misc.get('verbose') is not 0:
+	if misc.get('color'):
 	    print C["bold"] + C["yellow"] + "Warning: " + C["default"] + text
 	else:
 	    print "Warning: " + text
@@ -835,7 +854,7 @@ def move(db, conf, id, newcat, dbfile):
 
 
 def c(text):
-    if misc.getcolor():
+    if misc.get('color'):
 	return C['g'] + text + C['d']
     return text
 
@@ -1050,7 +1069,6 @@ def main():
     if flatfile(config):
         # Always backup the database before ding anything. Will overwrite older backup.
         shutil.copy(DB, PATH + "/.siredb.backup")
-
         # First read the database from the file.
         db = parsedb(DB)
 
@@ -1059,215 +1077,311 @@ def main():
         dbuser = config["database.user"]
         dbpass = config["database.pass"]
         dbname = config["database.name"]
-
         db = MySQLdb.connect(dbhost, dbuser, dbpass, dbname)
 
-    # For (--find, -f).
-    edits = 0
-    edit_allowed = False
-
-    # For (--noid, -n).
-    noid = False
-    nocat = False
-    category = None
-    nonewline = False
-    dolist = True
-    addcat = False
-    newcattitle = None
-    newcatid = None
     configfile = None
     dbfile = DB
 
+    opts = parseargs()
+
+    if opts.profile is not None:
+	profile = opts.profile
+        config = parseconfig(ALTRC + profile)
+        configfile = ALTRC + profile
+        dbfile = ALTDB + profile
+        db = changedb(config, dbfile)
+
+    if opts.printid is False:
+	misc.set('id', False)
+
+    if opts.printcolor is False:
+	misc.set('color', False)
+
+    if opts.printnewline is False:
+	misc.set('newline', False)
+
+    if opts.printcat is False:
+	misc.set('category', False)
+
+    if opts.hide is True:
+	misc.set('id', False)
+	misc.set('color', False)
+	misc.set('newline', False)
+	misc.set('category', False)
+
+    if opts.verbose is not None:
+	misc.set('verbose', opts.verbose)
+
+    if opts.force is True:
+	misc.set('force', True)
+
+    if opts.edits is not None:
+	misc.set('edits', opts.edits)
+
+    # Options that do things comes last.
+    if opts.addcat is not None:
+	if opts.dest is None:
+	    error("Need to specify a category ID. Specify it with --destination, -D.")
+	    sys.exit(1)
+	newcategory(configfile, opts.addcat, opts.dest)
+	return
+
+    if opts.find is not None:
+	approxsearch(db, config, misc.get('edits'), opts.find)
+	return
+
+    if opts.move is not None:
+	id = opts.move
+	if opts.dest is not None:
+	    newcat = opts.dest
+	    move(db, config, id, newcat, dbfile)
+	    return
+
+	# User didn't specify what category to move to, try to use the default value.
+        if flatfile(config):
+            curcat = getcat(db, id)
+        else:
+            cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+id+"'", None)
+            result = cursor.fetchall()
+            curcat = result[0][3]
+
+        # Try default for current category.
+        newcat = "defval.move-" + curcat
+        if not newcat in config.keys():
+            # Otherwise try to use default for all categories.
+            if not "defval.move" in config.keys():
+                error("Need to specify category, default category not found. Use --destination, -D or edit your config file.")
+                sys.exit(1)
+            else: newcat = config["defval.move"]
+        else: newcat = config[newcat]
+        move(db, config, id, newcat, dbfile)
+
+    if opts.change is not None:
+	if opts.dest is None:
+	    error("No change-to value specified. Specify it using --destination, -D.")
+	    sys.exit(1)
+
+        change(db, config, opts.change, opts.dest, dbfile)
+	return
+
+    if opts.delete is not None:
+        delete(db, config, opts.delete, dbfile)
+	return
+
+    if opts.info is not None:
+        info(db, config, opts.info)
+	return
+
+    if opts.add is not None:
+	title = opts.add
+
+	if opts.dest is not None:
+	    category = opts.dest
+	else:
+	    if not "defval.add" in config.keys():
+		error("defval.add not specified in config file, and no category specified on command line when adding.")
+		sys.exit(1)
+	    category = config["defval.add"]
+
+        add(db, config, title, category, dbfile)
+	return
+	
+    # Nothing else was done, so list a category.
+    category = None
+    if opts.list is not None:
+	category = opts.list
+    list(db, config, category)
+    
     # What to do with the different arguments.
-    for o, a in opts:
-        if o in ("-h", "--help"):
-            usage()
-            sys.exit()
+    #for o, a in opts:
+        #if o in ("-h", "--help"):
+        #    usage()
+        #    sys.exit()
 
-        elif o in ("-n", "--no-id"):
-            noid = True
-            continue
+        #elif o in ("-n", "--no-id"):
+        #    noid = True
+        #    continue
 
-        elif o in ("-t", "--no-category"):
-            nocat = True
-            continue
+        #elif o in ("-t", "--no-category"):
+        #    nocat = True
+        #    continue
 
-        elif o in ("-o", "--no-color"):
-            misc.setcolor(False)
-            continue
+        #elif o in ("-o", "--no-color"):
+        #    misc.setcolor(False)
+        #    continue
 
-	elif o in ("-g", "--add-category"):
-	    addcat = True
-	    dolist = False
-	    continue
+	#elif o in ("-g", "--add-category"):
+	#    addcat = True
+	#    dolist = False
+	#    continue
 
-	elif o in ("-y", "--category-title"):
-	    newcattitle = a
-	    dolist = False
-	    continue
+	#elif o in ("-y", "--category-title"):
+	#    newcattitle = a
+	#    dolist = False
+	#    continue
 
-	elif o in ("-q", "--quiet"):
-	    misc.setquiet(True)
-	    continue
+	#elif o in ("-q", "--quiet"):
+	#    misc.setquiet(True)
+	#    continue
 
-	elif o in ("-F", "--force"):
-	    misc.setforce(True)
-	    continue
+	#elif o in ("-F", "--force"):
+	#    misc.setforce(True)
+	#    continue
 
-	elif o in ("-u", "--category-id"):
-	    newcatid = a
-	    dolist = False
-	    continue
+	#elif o in ("-u", "--category-id"):
+	#    newcatid = a
+	#    dolist = False
+	#    continue
 
-        elif o in ("-l", "--list"):
-            category = a
-            dolist = True
-            continue
+        #elif o in ("-l", "--list"):
+        #    category = a
+        #    dolist = True
+        #    continue
 
-	elif o in ("-p", "--profile"):
-	    config = parseconfig(ALTRC + a)
-	    configfile = ALTRC + a
-	    dbfile = ALTDB + a
-	    db = changedb(config, dbfile)
-	    continue
+	#elif o in ("-p", "--profile"):
+	#    config = parseconfig(ALTRC + a)
+	#    configfile = ALTRC + a
+	#    dbfile = ALTDB + a
+	#    db = changedb(config, dbfile)
+	#    continue
 
-        elif o in ("-w", "--no-newline"):
-            nonewline = True
-            continue
+        #elif o in ("-w", "--no-newline"):
+        #    nonewline = True
+        #    continue
 
 	# FIXME: use optparse instead
-	elif o in ("-k", "--temp-add"):
-	    dolist = False
-	    title = sys.argv[4]
-	    category = sys.argv[5]
-	    add(db, config, title, category, dbfile)
-	    continue
+	#elif o in ("-k", "--temp-add"):
+	#    dolist = False
+	#    title = sys.argv[4]
+	#    category = sys.argv[5]
+	#    add(db, config, title, category, dbfile)
+	#    continue
 
-        elif o in ("-a", "--add"):
-            dolist = False
-            if len(sys.argv) < 3:
-                usage()
-                sys.exit(1)
+        #elif o in ("-a", "--add"):
+        #    dolist = False
+        #    if len(sys.argv) < 3:
+        #        usage()
+        #        sys.exit(1)
 
             # Use default category first.
-            category = a
-	    if category == '':
-                category = config["defval.add"]
+        #    category = a
+	#    if category == '':
+        #        category = config["defval.add"]
 
-            title = sys.argv[2]
-            add(db, config, title, category, dbfile)
-            continue
+        #    title = sys.argv[2]
+        #    add(db, config, title, category, dbfile)
+        #    continue
 
-        elif o in ("-i", "--info"):
-            dolist = False
-            if len(sys.argv) < 3:
-                usage()
-                sys.exit(1)
+        #elif o in ("-i", "--info"):
+        #    dolist = False
+        #    if len(sys.argv) < 3:
+        #        usage()
+        #        sys.exit(1)
 
-            id = sys.argv[2:]
-            info(db, config, id)
-            continue
+        #    id = sys.argv[2:]
+        #    info(db, config, id)
+        #    continue
 
-        elif o in ("-d", "--delete"):
-            dolist = False
-            delete(db, config, a, dbfile)
-            continue
+        #elif o in ("-d", "--delete"):
+        #    dolist = False
+        #    delete(db, config, a, dbfile)
+        #    continue
 
-        elif o in ("-c", "--change"):
-            dolist = False
-            if len(sys.argv) < 4:
-                usage()
-                sys.exit(1)
+        #elif o in ("-c", "--change"):
+        #    dolist = False
+        #    if len(sys.argv) < 4:
+        #        usage()
+        #        sys.exit(1)
 
-            id = sys.argv[2]
-            val = sys.argv[3]
+        #    id = sys.argv[2]
+        #    val = sys.argv[3]
 
-            change(db, config, id, val, dbfile)
-            continue
+        #    change(db, config, id, val, dbfile)
+        #    continue
 
-        elif o in ("-m", "--move"):
-            dolist = False
-            if len(sys.argv) < 3:
-                usage()
-                sys.exit(1)
+        #elif o in ("-m", "--move"):
+        #    dolist = False
+        #    if len(sys.argv) < 3:
+        #        usage()
+        #        sys.exit(1)
     
-            id = sys.argv[2]
+        #    id = sys.argv[2]
             
             # User didn't specify what category to move to, try to use the default value.
-            if len(sys.argv) < 4:
-                if flatfile(config):
-                    curcat = getcat(db, id)
-                else:
-                    cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+id+"'", None)
-                    result = cursor.fetchall()
-                    curcat = result[0][3]
-
+        #    if len(sys.argv) < 4:
+        #        if flatfile(config):
+        #            curcat = getcat(db, id)
+        #        else:
+        #            cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+id+"'", None)
+        #            result = cursor.fetchall()
+        #            curcat = result[0][3]
+    
                 # Try default for current category.
-                newcat = "defval.move-" + curcat
-                if not newcat in config.keys():
+        #        newcat = "defval.move-" + curcat
+        #        if not newcat in config.keys():
                     # Otherwise try to use default for all categories.
-                    if not "defval.move" in config.keys():
-                        error("Need to specify category, default category not found.")
-                        sys.exit(1)
+        #            if not "defval.move" in config.keys():
+        #                error("Need to specify category, default category not found.")
+        #                sys.exit(1)
 
-                    else:
-                        newcat = config["defval.move"]
-                else:
-                    newcat = config[newcat]
+        #            else:
+        #                newcat = config["defval.move"]
+        #        else:
+        #            newcat = config[newcat]
 
             # User specified category.
-            else:
-                newcat = sys.argv[3]
+        #    else:
+        #        newcat = sys.argv[3]
 
-            move(db, config, id, newcat, dbfile)
-            continue
+        #    move(db, config, id, newcat, dbfile)
+        #    continue
 
-        elif o in ("-e", "--edits"):
-            dolist = False
-            if len(sys.argv) < 5:
-                usage()
-                sys.exit(1)
+        #elif o in ("-e", "--edits"):
+        #    dolist = False
+        #    if len(sys.argv) < 5:
+        #        usage()
+        #        sys.exit(1)
 
-            edits = int(a)
-            edit_allowed = True
-            continue
+        #    edits = int(a)
+        #    edit_allowed = True
+        #    continue
             
-        elif o in ("-f", "--find"):
-            dolist = False
-            if len(sys.argv) < 3:
-                usage()
-                sys.exit(1)
+        #elif o in ("-f", "--find"):
+        #    dolist = False
+        #    if len(sys.argv) < 3:
+        #        usage()
+        #        sys.exit(1)
 
-            if edit_allowed:
-                approxsearch(db, config, edits, sys.argv[4:])
+        #    if edit_allowed:
+        #        approxsearch(db, config, edits, sys.argv[4:])
 
-            else:
-                approxsearch(db, config, 0, sys.argv[2:])
+        #    else:
+        #        approxsearch(db, config, 0, sys.argv[2:])
 
-            continue
+        #    continue
 
-        elif o in ("-v", "--version"):
-            version()
-            sys.exit()
+        #elif o in ("-v", "--version"):
+        #    version()
+        #    sys.exit()
 
-        else:
-            usage()
-            sys.exit(1)
+        #else:
+        #    usage()
+        #    sys.exit(1)
 
     # If no argument given, list items of default category.
-    if dolist:
-        list(db, config, category, noid, nocat, nonewline)
+    #if dolist:
+    #    list(db, config, category, noid, nocat, nonewline)
 
-    if addcat:
-	if newcattitle == None:
-	    error("Need category title. Use --category-title or -y.")
-	    sys.exit(1)
+    #if addcat:
+    #	if newcattitle == None:
+    #	    error("Need category title. Use --category-title or -y.")
+    #	    sys.exit(1)
+    
+    #	if newcatid == None:
+    #	    error("Need category id. Use --category-id or -u.")
+    #	    sys.exit(1)
 
-	if newcatid == None:
-	    error("Need category id. Use --category-id or -u.")
-	    sys.exit(1)
-
-	newcategory(configfile, newcattitle, newcatid)
+    #	newcategory(configfile, newcattitle, newcatid)
 
     return
 
