@@ -3,11 +3,14 @@
 import string, sys, getopt, os, re, ConfigParser, time, shutil
 import Apse # for approximate searching
 import MySQLdb # database
+from optparse import OptionParser
 
 HOME = os.path.expanduser("~")
 PATH = HOME + "/.sire/"
 CONFIG = PATH + "/sirerc"
 DB = PATH + "/siredb"
+ALTDB = PATH + "/altdb/"
+ALTRC = PATH + "/altrc/"
 
 NAME = "sire"
 VERSION = "0.1.7"
@@ -24,7 +27,7 @@ C = {
     'b'       : "\033[1m",
     'red'     : "\033[31m",
     'green'   : "\033[32m",
-    'g'   : "\033[32m",
+    'g'       : "\033[32m",
     'yellow'  : "\033[33m",
     'blue'    : "\033[34m",
     'magenta' : "\033[35m",
@@ -33,15 +36,43 @@ C = {
 }
 
 # Define arguemnts.
-opts, args = getopt.getopt(
+opts, args = getopt.gnu_getopt(
     sys.argv[1:], # Arguements from commandline.
-    'we:nl:hotcvfiadm',  # Short arguments.
-    ['no-newline', 'no-catagory', 'no-color', 'edits=', 'no-id', 'list=', 'change', 'info', 'add', 'move', 'delete', 'find', 'help', 'version'] # Long arguments.
+    'Fqku:y:gp:we:nl:hotcvfiad:m',  # Short arguments.
+    ['force', 'quiet', 'temp-add', 'category-title=', 'category-id=', 'add-category', 'profile=', 'no-newline', 'no-category', 'no-color', 'edits=', 'no-id', 'list=', 'change', 'info', 'add', 'move', 'delete=', 'find', 'help', 'version'] # Long arguments.
 )
 
 
+class miscfunctions:
+    def __init__(self):
+	self.quiet = False
+	self.color = True
+	self.force = False
+	return
+
+    def setforce(self, bool):
+	self.force = bool
+	return
+
+    def setquiet(self, bool):
+	self.quiet = bool
+	return
+
+    def setcolor(self, bool):
+	self.color = bool
+	return
+
+    def getforce(self):
+	return self.force
+
+    def getquiet(self):
+	return self.quiet
+
+    def getcolor(self):
+	return self.color
 
 
+misc = miscfunctions()
 
 def usage():
     print '''Usage: [OPTION] [ARGUMENTS]
@@ -54,7 +85,11 @@ def usage():
     --change, -c <ID1[,ID2[,...]]> <new value>   Change the title of one or more items.
     --noid, -n                                   Don't show ID when listing, even if specified to do so in sirerc.
     --edits, -e                                  Used -before- (--find, -f) to specify the number of edits allowed to search value.
-    --noid, -n                                   Don't show ID when listing (used -before- (--list, -l)).
+    --no-id, -n                                   Don't show ID when listing (used -before- (--list, -l)).
+    --category-title, -y
+    --category-id, -u
+    --add-category, -g
+    --force, -F
     --help, -h                                   Show this help.
     --version, -v                                Show the current version.
 
@@ -78,6 +113,20 @@ def version():
 
 
 
+def itemexistsincat(db, config, cat, item):
+    if flatfile(config):
+	for val in db[cat].values():
+	    if val[1] == item:
+		return True
+	return False
+
+    # SQL
+    cursor = dbexec(db, "select * from item where title = '" + title + \
+	"' and category = '" + cat + "'", None)
+    if len(cursor.fetchall()) > 0:
+	return True
+    return False
+
 
 
 # Internal function to check for already existing items.
@@ -87,16 +136,22 @@ def itemexists(db, config, item):
             for val in db[key].values():
                 if val[1] == item:
                     return True
-
         return False
 
     # else we're using sql
     cursor = dbexec(db, "select * from item where title = '"+item+"'", None)
-    if len(cursor.fetchall()) > 1:
+    if len(cursor.fetchall()) > 0:
         return True
-
     return False
 
+
+def getdup(config, cat):
+    if not cat is None and ("duplicates." + cat) in config.keys():
+	return config["duplicates." + cat]
+
+    elif ("defval.duplicates") in config.keys():
+	return config["defval.duplicates"]
+    return None
 
 
 
@@ -171,7 +226,7 @@ def approxsearch(db, conf, edits, sstr):
             if showcats:
                 if old_cat is None or res[3] != old_cat:
                     print
-                    printcategory(res[3], conf, nocolor)
+                    printcategory(res[3], conf)
                     old_cat = res[3]
 
             # Make titles aligned.
@@ -194,6 +249,13 @@ def approxsearch(db, conf, edits, sstr):
 
 
 def parseconfig(conffile):
+    if not os.path.isfile(conffile):
+	f = file(conffile, 'w')
+	f.close()
+	if not quiet:
+	    error("Config file didn't exist. I created it for you.")
+	sys.exit(1)
+
     _config = {}
     cp = ConfigParser.ConfigParser()
     cp.read(conffile)
@@ -208,7 +270,7 @@ def parseconfig(conffile):
 
 
 # Print a category (status) description using bold and colors.
-def printcategory(category, config, nocolor):
+def printcategory(category, config):
     if ("categories." + category) not in config.keys():
         error("There is no Catagory description for category '"+c(category)+"'!")
         sys.exit(1)
@@ -222,12 +284,12 @@ def printcategory(category, config, nocolor):
     else:
         color = C[config["colors." + category]]
 
-    if nocolor:
-        print "  " + config["categories." + category], "('" + category + "')"
-    
-    else:
+    if misc.getcolor():
         print C["bold"], color, config["categories." + category], "('" + category + "')", C["default"]
+    else:
+        print "  " + config["categories." + category], "('" + category + "')"
 
+    return
 
 
 
@@ -236,6 +298,16 @@ def printcategory(category, config, nocolor):
 # FIXME: I don't want to load a 500MB file each time I wan't to check what I can watch.
 def parsedb(dbfile):
     db = {}
+    if not os.path.isfile(dbfile):
+	f = file(dbfile, 'w')
+	f.close()
+	error("Database didn't exist. I created it for you.")
+	sys.exit(1)
+
+    if os.path.getsize(dbfile) == 0:
+	warning("Your database is empty.")
+	return db
+
     f = file(dbfile, 'r')
     for line in f.readlines():
         parts = line.split(":", 3)
@@ -246,7 +318,6 @@ def parsedb(dbfile):
 
         else:
             db[parts[0]][parts[1]] = (parts[2], parts[3])
-
 
     f.close()
     return db
@@ -343,9 +414,8 @@ def listdupes(db, conf, cat):
 
 
 
-
 # List either all categories or only the default category.
-def list(db, config, category, noid, nocolor, nocat, nonewline):
+def list(db, config, category, noid, nocat, nonewline):
     if flatfile(config):
         # Nothing in database.
         if db == {}:
@@ -361,7 +431,7 @@ def list(db, config, category, noid, nocolor, nocat, nonewline):
     # Only print the category titles.
     if category == "titles":
         for title in alldbs:
-            printcategory(title, config, nocolor)
+            printcategory(title, config)
 
         sys.exit()
 
@@ -430,9 +500,10 @@ def list(db, config, category, noid, nocolor, nocat, nonewline):
                     dbsel = dbsel
 
         if not nocat: 
-            printcategory(category, config, nocolor)
+            printcategory(category, config)
 
         if flatfile(config):
+	    output = ''
             for id, title in dbsel:
                 # Make titles aligned.
                 title = title[1]
@@ -441,25 +512,19 @@ def list(db, config, category, noid, nocolor, nocat, nonewline):
                     spacer += ' '
 
                 # Showing ID when listing is optional.
-                if "general.showid" not in config.keys():
-                    print title
+                if "general.showid" not in config.keys() or noid:
+                    output += title + newline
 
-                elif noid:
-                    print title
-            
                 elif config["general.showid"] == '1':
-                    if not nocolor:
-                        print C['bold'] + id + C['default'], spacer + ':', title
+                    if misc.getcolor():
+                        output += C['bold'] + id + C['default'] + spacer + ' : ' + title + newline
 
                     else:
-                        print id, spacer + ':', title
+                        output += id + spacer + ' : ' + title + newline
 
                 else:
-                    print title
+                    output += title + newline
  
-            # For newline separator between items of different statuses.
-            print
-
         # SQL
         else:
             output = ''
@@ -475,7 +540,7 @@ def list(db, config, category, noid, nocolor, nocat, nonewline):
                     output += title + newline
             
                 elif config["general.showid"] == '1':
-                    if not nocolor:
+                    if misc.getcolor():
                         output += C['bold'] + id + C['default'] + ' ' + spacer + ': ' + title + newline
                     else:
                         output += id + ' ' + spacer + ': ' + title + newline
@@ -492,14 +557,22 @@ def list(db, config, category, noid, nocolor, nocat, nonewline):
 
 
 # Add an item to the database.
-def add(db, config, name, category):
+def add(db, config, name, category, dbfile):
     if ("categories." + category) not in config.keys():
         error("Specified category does not exist.")
         sys.exit(1)
 
-    if itemexists(db, config, name):
-        print C["bold"] + C["red"] + "Warning:" + C["default"], "Item already exists in category '" + category + "'."
-        sys.exit(1)
+    dup = getdup(config, category)
+
+    if dup == "0" and itemexists(db, config, name):
+        error("Item already exists in category '" + c(category) + "'.")
+	if not misc.getforce():
+            sys.exit(1)
+
+    if dup == "1" and itemexistsincat(db, config, category, name):
+        error("Item already exists in category '" + c(category) + "'.")
+	if not misc.getforce():
+            sys.exit(1)
 
     # time.time() returns float, so throw away the ms, then convert to string for writing
     date = str(int(time.time()))
@@ -515,10 +588,11 @@ def add(db, config, name, category):
                 id = str(i)
 
         id = str(int(id) + 1)
-
-        f = open(DB, 'a')
-        f.write(category + ":" + id + ":" + date + ":" + name + '\n')
-        f.close()
+	if not category in db.keys():
+	    db[category] = {id: (date, name)}
+	else:
+	    db[category][id] = (date, name)
+	savedb(db, config, dbfile)
 
     else:
         cursor = dbexec(db, "SELECT * FROM curid", None)
@@ -526,12 +600,12 @@ def add(db, config, name, category):
         dbexec(db, "UPDATE curid SET id = id + 1", None)
         dbexec(db, "INSERT INTO item (id, title, date, cat) VALUES (%s, %s, %s, %s)", (id, name, date, category))
 
+    # FIXME: huh? why is this here? already checked
+    #if itemexists(db, config, name):
+    #    warning("Item already exists in category '" + c(category) + "'.")
 
-    if itemexists(db, config, name):
-        print C["bold"] + C["red"] + "Warning:" + C["default"], "Item already exists in category '" + category + "'."
-
-    print "Saved '" + c(name) + "' with id '" + c(str(id)) + "'."
-
+    note("Saved '" + c(name) + "' with id '" + c(str(id)) + "'.")
+    return
 
 
 
@@ -550,11 +624,13 @@ def dbexec(db, template, values):
 
 
 # Delete an item from the database.
-def delete(db, conf, ids):
+def delete(db, conf, ids, dbfile):
     if flatfile(conf):
         alldbs = db.keys()
     else:
         alldbs = getcatsql(db)
+
+    ids = ids.split(',')
 
     for id in ids:
         deleted = False
@@ -583,14 +659,14 @@ def delete(db, conf, ids):
         if deleted:
             date = timepassed(date)
 
-            print "Deleted item with ID '"+c(id)+"' and title '"+c(title)+"' from category '"+c(d)+"'."
-            print "It was in that category for "+date[0], "years,", date[1], \
-                "days,", date[2], "hours,", date[3], "minutes and", date[4], "seconds."
+            note("Deleted item with ID '"+c(id)+"' and title '"+c(title)+"' from category '"+c(d)+"'.")
+            note("It was in that category for "+date[0]+" years, "+date[1]+ \
+                " days, "+date[2]+" hours, "+date[3]+" minutes and "+date[4]+" seconds.")
 
         else:
             error("Item with ID '"+c(id)+"' not found.")
 
-    savedb(db, conf)
+    savedb(db, conf, dbfile)
 
 
 def getcatsql(db):
@@ -602,16 +678,37 @@ def timepassed(date):
     return (str(date/60/60/24/365), str(date/60/60/24 % 365), \
         str(date/60/60 % 24), str(date/60 % 60), str(date % 60))
 
+def note(text):
+    if not misc.getquiet():
+	if misc.getcolor():
+	    print C["bold"] + C["green"] + "Note: " + C["default"] + text
+	else:
+	    print "Note: " + text
+    return
+
 def error(text):
-    print C["bold"] + C["red"] + "Error: " + C["default"] + text
+    if not misc.getquiet():
+	if misc.getcolor():
+            print C["bold"] + C["red"] + "Error: " + C["default"] + text
+	else:
+	    print "Error: " + text
+    return
+
+def warning(text):
+    if not misc.getquiet():
+	if misc.getcolor():
+	    print C["bold"] + C["yellow"] + "Warning: " + C["default"] + text
+	else:
+	    print "Warning: " + text
+    return
 
 
 # Save a changed database.
-def savedb(db, conf):
+def savedb(db, conf, dbfile):
     if not flatfile(conf):
         return
     
-    f = open(DB, 'w')
+    f = open(dbfile, 'w')
     for d in db:
         for id in db[d]:
             f.write(d + ":" + id + ":" + db[d][id][0] + ":" + db[d][id][1] + "\n")
@@ -623,7 +720,7 @@ def savedb(db, conf):
 
 
 # Change the value of an item with ID 'id'.
-def change(db, conf, id, val_orig):
+def change(db, conf, id, val_orig, dbfile):
     # Find all '%([0-9+)' in 'val'.
     id = id.split(',')
     res = re.findall(r'\%\(([0-9]+|#)\)', val_orig)
@@ -681,13 +778,13 @@ def change(db, conf, id, val_orig):
 
             print "Changed item '"+c(i)+"' from '"+c(old)+"' to '" + c(val)+"'."
 
-    savedb(db, conf)
+    savedb(db, conf, dbfile)
 
 
 
 
 # Move an item with ID 'id' to a new category.
-def move(db, conf, id, newcat):
+def move(db, conf, id, newcat, dbfile):
     if not ("categories." + newcat) in conf.keys():
         error("No such category '" + c(newcat) + "'. Add it in the sirerc first.")
         sys.exit(1)
@@ -734,11 +831,13 @@ def move(db, conf, id, newcat):
     print "It was in that category for "+date[0], "years,", date[1], \
         "days,", date[2], "hours,", date[3], "minutes and", date[4], "seconds."
 
-    savedb(db, conf)
+    savedb(db, conf, dbfile)
 
 
 def c(text):
-    return C['g'] + text + C['d']
+    if misc.getcolor():
+	return C['g'] + text + C['d']
+    return text
 
 
 # Get the category of a title with a certain ID.
@@ -870,6 +969,74 @@ def info(db, conf, ids):
 
 
 
+def sortdict(adict):
+    items = adict.items()
+    items.sort()
+    return [(key, value) for key, value in items]
+
+
+
+
+
+def saveconfig(config, configfile):
+    #f = open(configfile, 'w')
+    #config = sortdict(config)
+    #for item in config:
+    #    f.write(item[0] + ":" + item[1] + "\n")
+    #f.close()
+
+    cf = open(configfile, 'wb')
+    for sec in config.sections():
+        name = string.lower(sec)
+	cf.write("\n[" + name + "]\n")
+        for opt in config.options(sec):
+            cf.write(string.lower(opt) + ": " + string.strip(config.get(sec, opt)) + "\n")
+
+    cf.close()
+
+    return
+
+
+
+
+
+def newcategory(configfile, title, id):
+    #config["categories." + id] = title
+    #config["defval.move-" + id] = id
+
+    sections = ["categories", "defval"]
+
+    config = ConfigParser.ConfigParser()
+    config.read(configfile)
+
+    for section in sections:
+	if not config.has_section(section):
+	    config.add_section(section)
+
+    config.set("categories", id, title)
+    config.set("defval", "move-" + id, id)
+    config.set("defval", "list", id)
+
+    saveconfig(config, configfile)
+
+    print "Added category '"+c(id)+"' with title '"+c(title)+"'."
+
+    return
+
+
+
+
+
+def changedb(config, dbfile):
+    config["database.type"] = "flatfile"
+    db = parsedb(dbfile)
+
+    return db
+
+
+
+
+
 # Handle command line arguments.
 def main():
     # Check if config and database files exists and are read- and writeable.
@@ -899,17 +1066,17 @@ def main():
     edits = 0
     edit_allowed = False
 
-    dolist = False
-
     # For (--noid, -n).
     noid = False
     nocat = False
-    nocolor = False
-    catagory = None
+    category = None
     nonewline = False
     dolist = True
-
-
+    addcat = False
+    newcattitle = None
+    newcatid = None
+    configfile = None
+    dbfile = DB
 
     # What to do with the different arguments.
     for o, a in opts:
@@ -921,22 +1088,60 @@ def main():
             noid = True
             continue
 
-        elif o in ("-t", "--no-catagory"):
+        elif o in ("-t", "--no-category"):
             nocat = True
             continue
 
         elif o in ("-o", "--no-color"):
-            nocolor = True
+            misc.setcolor(False)
             continue
 
+	elif o in ("-g", "--add-category"):
+	    addcat = True
+	    dolist = False
+	    continue
+
+	elif o in ("-y", "--category-title"):
+	    newcattitle = a
+	    dolist = False
+	    continue
+
+	elif o in ("-q", "--quiet"):
+	    misc.setquiet(True)
+	    continue
+
+	elif o in ("-F", "--force"):
+	    misc.setforce(True)
+	    continue
+
+	elif o in ("-u", "--category-id"):
+	    newcatid = a
+	    dolist = False
+	    continue
+
         elif o in ("-l", "--list"):
-            catagory = a
+            category = a
             dolist = True
             continue
+
+	elif o in ("-p", "--profile"):
+	    config = parseconfig(ALTRC + a)
+	    configfile = ALTRC + a
+	    dbfile = ALTDB + a
+	    db = changedb(config, dbfile)
+	    continue
 
         elif o in ("-w", "--no-newline"):
             nonewline = True
             continue
+
+	# FIXME: use optparse instead
+	elif o in ("-k", "--temp-add"):
+	    dolist = False
+	    title = sys.argv[4]
+	    category = sys.argv[5]
+	    add(db, config, title, category, dbfile)
+	    continue
 
         elif o in ("-a", "--add"):
             dolist = False
@@ -945,13 +1150,12 @@ def main():
                 sys.exit(1)
 
             # Use default category first.
-            category = config["defval.add"]
-
-            if len(sys.argv) == 4:
-                category = sys.argv[3]
+            category = a
+	    if category == '':
+                category = config["defval.add"]
 
             title = sys.argv[2]
-            add(db, config, title, category)
+            add(db, config, title, category, dbfile)
             continue
 
         elif o in ("-i", "--info"):
@@ -966,12 +1170,7 @@ def main():
 
         elif o in ("-d", "--delete"):
             dolist = False
-            if len(sys.argv) < 3:
-                usage()
-                sys.exit(1)
-    
-            id = sys.argv[2:]
-            delete(db, config, id)
+            delete(db, config, a, dbfile)
             continue
 
         elif o in ("-c", "--change"):
@@ -983,7 +1182,7 @@ def main():
             id = sys.argv[2]
             val = sys.argv[3]
 
-            change(db, config, id, val)
+            change(db, config, id, val, dbfile)
             continue
 
         elif o in ("-m", "--move"):
@@ -1020,7 +1219,7 @@ def main():
             else:
                 newcat = sys.argv[3]
 
-            move(db, config, id, newcat)
+            move(db, config, id, newcat, dbfile)
             continue
 
         elif o in ("-e", "--edits"):
@@ -1057,8 +1256,18 @@ def main():
 
     # If no argument given, list items of default category.
     if dolist:
-        list(db, config, catagory, noid, nocolor, nocat, nonewline)
-    sys.exit()
+        list(db, config, category, noid, nocat, nonewline)
+
+    if addcat:
+	if newcattitle == None:
+	    error("Need category title. Use --category-title or -y.")
+	    sys.exit(1)
+
+	if newcatid == None:
+	    error("Need category id. Use --category-id or -u.")
+	    sys.exit(1)
+
+	newcategory(configfile, newcattitle, newcatid)
 
     return
 

@@ -1,7 +1,33 @@
+Sun Jul 26 15:30:29 CEST 2009: scorch
+	* fixed a bug that made sire not complain about duplicate entry before
+	  the third time a duplicate item was added
+	* fixed a bug that made sire crash after moving an item when using
+	  mysql as database
+
+Sun Jul 26 13:15:22 CEST 2009: scorch
+	* support for (--force, -F) when warnings are stopping execution
+	* support to specify duplicates policy in config file
+	  (duplicates.<category> and defval.duplicates)
+
+Sun Jul 26 05:25:41 CEST 2009: scorch
+	* started moving some functions to classes
+	* gradually changed all information printing to use the note(),
+	  warning() and error() functions instead of printing them directly
+	* support for (--add-category, -g) for adding new categories 
+	  (currently only for flatfile)
+	* support for (--category-title, -y) used with -g, -u for specifying 
+	  title of new category
+	* supoprt for (--category-id, -u) used with -g, -y for specifying id
+	  of of new category
+	* support for (--profile, -p) for specifying a different profile
+	  (other db and conf)
+	* support for (--quiet, -q) for suppressing warning/notice/error 
+	  messages
+
 Fri Jul 24 23:54:32 CEST 2009: scorch
 	* support for (--no-newline, -w) for printing ", " instead of newlines
 	  when listing
-	* change (--noid, -n) to (--no-id, -n)
+	* changed (--noid, -n) to (--no-id, -n)
 
 Wed Jul 22 15:23:35 CEST 2009: scorch
 	* support for (--no-color, -o) for skipping colors when printing

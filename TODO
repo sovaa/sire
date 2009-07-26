@@ -1,30 +1,38 @@
 1.0.0:
 * dunno
-
-0.2.0:
 * make listdupes faster. current complexity is O(n^4)!11
 * Clean up the code.
 
-0.1.8
---- * support for (--no-catagory, -t) for skipping catagory title when listing
+0.2.0:
+* updated the examples
+* (--help, -h) shows correct usage
+* support for adding new categories when using mysql
+--- * support for (--force, -F) when warnings are stopping execution
+--- * support to specify duplicates policy in config file
+--- * support for (--add-category, -g) for adding new categories (currently only for flatfile)
+--- * support for (--category-title, -y) used with -g, -u for specifying title of new category
+--- * supoprt for (--category-id, -u) used with -g, -y for specifying id of new category
+--- * support for (--profile, -p) for specifying a different profile (other db and conf)
+--- * support for (--quiet, -q) for suppressing warning/notice/error messages
+--- * support for (--no-category, -t) for skipping category title when listing
 --- * support for (--no-newline, -w) for printing ", " instead of newlines when listing
 --- * support for (--no-color, -o) for skipping colors when printing
 --- * change (--noid, -n) to (--no-id, -n)
 * support for (--time, -u) for listing items no older than specified value
-* better argument support
+* better argument support using optparse
 --- * possibility to use either flat file database or mysql (specified in config file)
 
 0.1.7:
---- * show how long an item was in a catagory when changed/deleted
---- * sort using time in catagory
+--- * show how long an item was in a category when changed/deleted
+--- * sort using time in category
 --- * backup database before doing -anything-
 --- * command line option to hide ID (--noid, -n)
 --- * command line option when searching (--find, -f) to specify the number of allowed edits
---- * date when added to catagory
---- * support for (--info, -i) to show information of an item (time added, how long in catagory etc)
+--- * date when added to category
+--- * support for (--info, -i) to show information of an item (time added, how long in category etc)
 
 0.1.6
---- * fix mixed up catagory IDs being printed when adding a duplicate item
+--- * fix mixed up category IDs being printed when adding a duplicate item
 --- * add support for easy self referencing when using change (--change, -c)
 --- * add support for comma seperated list when using change (--change, -c)
 --- * rename change (--change, -c) to move (--move, -m) 
