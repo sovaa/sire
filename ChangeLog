@@ -1,3 +1,26 @@
+Tue Jul 28 16:09:48 CEST 2009: scorch
+	* fixed a bug that made listing of duplicates print every item
+	* if no defvals are in the config file when adding a new category,
+	  that category will become the new value to defval.move, defval.list
+	  and so on, IF those options does not already exist in the config
+	  file. defval.(color|sort|duplicates) and general.showid will be set
+	  if they don't exist.
+	* the README now contains correct and more examples
+
+Tue Jul 28 13:35:46 CEST 2009: scorch
+	* fixed a bug that made deletion of multiple items not work
+	* support for (--pretend, -p) for pretending to do something
+	* changed (--version, -v) to (--version, -V)
+	* changed (--verbose, -V) to (--verbose, -v)
+	* changed notes to be shown by default instead of only in verbose,
+	  need to use (--quiet, -q) to supress them now
+	* fixed a bug with (--info, -i) showing info for items with e.g. ID 4,
+	  5, and 6 when a value of 456 was specified
+	* support for (--days-ago, -y) for listing items added no longer ago
+	  than this
+	* support for adding new categories when using mysql
+	
+
 Sun Jul 26 19:02:56 CEST 2009: scorch
 	* changed from gnu_getopt to optparse, resulting in easier code to
 	  maintain
