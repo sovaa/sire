@@ -1,3 +1,7 @@
+Tue Jul 28 18:41:21 CEST 2009: scorch
+	* fixed a bug that made sire crash when trying to move an item
+	* fixed a bug that made sire list a category after an item was moved
+
 Tue Jul 28 16:09:48 CEST 2009: scorch
 	* fixed a bug that made listing of duplicates print every item
 	* if no defvals are in the config file when adding a new category,

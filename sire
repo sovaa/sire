@@ -15,7 +15,7 @@ ALTRC = PATH + "/altrc/"
 
 NAME = "sire"
 VERSION = "0.2.0"
-AUTHORS = "Oscar Eriksson"
+AUTHORS = "Osca0 Eriksson"
 EMAIL = "(oscar.eriks@gmail.com)"
 LICENCE = '''License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to move and redistribute it.
@@ -864,9 +864,9 @@ def move(db, conf, id, newcat, dbfile):
         title = result[0][1]
         d = result[0][3]
 
-    print "Moved item with ID '"+c(id)+"' and title '"+c(title)+"' from category '"+c(d)+"' to '"+c(newcat)+"'."
-    print "It was in that category for "+date[0], "years,", date[1], \
-        "days,", date[2], "hours,", date[3], "minutes and", date[4], "seconds."
+    note("Moved item with ID '%s' and title '%s' from category '%s' to '%s'." % (c(id), c(title), c(d), c(newcat)))
+    note("It was in that category for %s years, %s days, %s hours, %s minutes and %s seconds." % 
+        (date[0], date[1], date[2], date[3], date[4]))
 
     savedb(db, conf, dbfile)
 
@@ -1165,7 +1165,7 @@ def main():
 	return
 
     if opts.move is not None:
-	id = opts.move
+	id = str(opts.move)
 	if opts.dest is not None:
 	    newcat = opts.dest
 	    move(db, config, id, newcat, dbfile)
@@ -1189,6 +1189,7 @@ def main():
             else: newcat = config["defval.move"]
         else: newcat = config[newcat]
         move(db, config, id, newcat, dbfile)
+        return
 
     if opts.change is not None:
 	if opts.dest is None:
