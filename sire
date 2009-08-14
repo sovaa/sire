@@ -1097,11 +1097,11 @@ def main():
         db = parsedb(DB)
 
     else:
-        dbhost = config["database.host"]
-        dbuser = config["database.user"]
-        dbpass = config["database.pass"]
-        dbname = config["database.name"]
-        db = MySQLdb.connect(dbhost, dbuser, dbpass, dbname)
+        db = MySQLdb.connect(
+            config["database.host"], 
+            config["database.user"], 
+            config["database.pass"], 
+            config["database.name"])
 
     configfile = CONFIG
     dbfile = DB

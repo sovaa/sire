@@ -3,6 +3,14 @@
 * make listdupes faster. current complexity is O(n^4)!11
 * Clean up the code.
 
+0.2.2:
+* divide different functionality in different files
+* put functions in classes
+* installer
+
+0.2.1:
+* dunnoooo
+
 0.2.0:
 --- * updated the examples
 --- * more default values when adding new category/profile
