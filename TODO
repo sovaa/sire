@@ -9,7 +9,12 @@
 * installer
 
 0.2.1:
-* dunnoooo
+* ability to assign a score to an item
+--- * sort using items score
+--- * specify sort on command line
+* support for general.showtable which shows description for the different columns
+--- * support for general.showscore which shows the score in the output table
+* support to change the separator from the config file
 
 0.2.0:
 --- * updated the examples

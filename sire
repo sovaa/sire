@@ -28,8 +28,8 @@ ALTDB = PATH + "/altdb/"
 ALTRC = PATH + "/altrc/"
 
 NAME = "sire"
-VERSION = "0.2.0"
-AUTHORS = "Osca0 Eriksson"
+VERSION = "0.2.1"
+AUTHORS = "Oscar Eriksson"
 EMAIL = "(oscar.eriks@gmail.com)"
 LICENCE = '''License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to move and redistribute it.
@@ -52,19 +52,28 @@ C = {
 
 class miscfunctions:
     def __init__(self):
-	self.map = {
-            'force': 0, 'verbose': 1, 'color': 2, 'id': 3, 'newline': 4, 
-            'category': 5, 'edits': 6, 'pretend': 7, 'daysago': 8
+	self.info = {
+            'force': False, 
+            'verbose': 1, 
+            'color': True, 
+            'id': True, 
+            'newline': True,
+            'category': True, 
+            'edits': 0, 
+            'pretend': False, 
+            'daysago': 0, 
+            'sort': None,
+            'score': True
         }
-	self.info = [False, 1, True, True, True, True, 0, False, 0]
 	return
 
     def set(self, what, value):
-	self.info[self.map[what]] = value
+	self.info[what] = value
 	return
 
     def get(self, what):
-	return self.info[self.map[what]]
+	return self.info[what]
+
 
 
 
@@ -87,6 +96,7 @@ def parseargs():
         "--no-category":  "Hide category title when listing a category.",
         "--no-color":     "Don't use any color/bold when printing.",
         "--no-newline":   "Don't print newlines. Use ', ' instead of '\\n' (newline) when listing one or more categories.",
+        "--no-score":     "Don't print score when listing. Overrides setting in configuration.",
         "--add-category": "Add a new category (will edit your config file). Use --destination, -D to specify the category ID.",
         "--force":        "Ignore warnings and continue execution anyway.",
         "--version":      "Show the current version.",
@@ -97,14 +107,16 @@ def parseargs():
         "--verbose":      "Be verbose. Print notices, warnings and errors.",
 	"--hide-all":     "Same as -LINC (--no-color --no-id --no-newline --no-category).",
         "--pretend":      "Only pretend to do the speicified things.",
-        "--days-ago":     "Only list items added no longer ago than this."
+        "--days-ago":     "Only list items added no longer ago than this.",
+        "--sort":         "Specify what to sort by. Overrides setting in configuration."
     }
     
     group = OptionGroup(parser, "Hide and/or change output options", "These options will hide or change different types of output.")
-    group.add_option("-I", "--no-id", action = "store_false", default = True, dest = "printid", help = htxt["--no-id"], metavar = "")
-    group.add_option("-C", "--no-category", action = "store_false", default = True, dest = "printcat", help = htxt["--no-category"], metavar = "")
-    group.add_option("-L", "--no-color", action = "store_false", default = True, dest = "printcolor", help = htxt["--no-color"], metavar = "")
-    group.add_option("-N", "--no-newline", action = "store_false", default = True, dest = "printnewline", help = htxt["--no-newline"], metavar = "")
+    group.add_option("-I", "--no-id", action = "store_false", default = True, dest = "printid", help = htxt["--no-id"])
+    group.add_option("-C", "--no-category", action = "store_false", default = True, dest = "printcat", help = htxt["--no-category"])
+    group.add_option("-L", "--no-color", action = "store_false", default = True, dest = "printcolor", help = htxt["--no-color"])
+    group.add_option("-N", "--no-newline", action = "store_false", default = True, dest = "printnewline", help = htxt["--no-newline"])
+    group.add_option("-S", "--no-score", action = "store_false", dest = "score", help = htxt["--no-score"])
     group.add_option("-H", "--hide-all", action = "store_true", default = False, dest = "hide", help = htxt["--hide-all"], metavar = "")
     group.add_option("-q", "--quiet", action = "store_const", const = 0, dest = "verbose", default = 1, help = htxt["--quiet"])
     group.add_option("-v", "--verbose", action = "store_const", const = 2, dest = "verbose", default = 1, help = htxt["--verbose"])
@@ -123,6 +135,7 @@ def parseargs():
     group.add_option("-e", "--edits", type="int", dest = "edits", help = htxt["--edits"], metavar = "VALUE")
     group.add_option("-i", "--info", dest = "info", help = htxt["--info"], metavar = "ID1[,ID2[...]]")
     group.add_option("-l", "--list", dest = "list", help = htxt["--list"], metavar = "CATEGORY")
+    group.add_option("-s", "--sort", action = "store", dest = "sort", help = htxt["--sort"])
     group.add_option("-V", "--version", action = "store_true", dest = "version", help = htxt["--version"])
     parser.add_option_group(group)
     
@@ -245,7 +258,7 @@ def approxsearch(db, conf, edits, sstr):
         if "find.showcats" in conf.keys() and conf["find.showcats"] == '1':
             showcats = True
 
-        print "Match found. Best match at the top.\n"
+        note("Match found. Best match at the top.\n")
         old_cat = None
 
         if showcats:
@@ -277,7 +290,7 @@ def approxsearch(db, conf, edits, sstr):
                 print C['bold'] + res[0] + C['default'], spacer + ':', res[1]
 
     else:
-        print "No matches found!"
+        warning("No matches found!")
 
 
 
@@ -345,14 +358,13 @@ def parsedb(dbfile):
 
     f = file(dbfile, 'r')
     for line in f.readlines():
-        parts = line.split(":", 3)
-        parts[3] = parts[3][:-1]
+        parts = line.split(":", 4)
+        parts[4] = parts[4][:-1]
 
         if not db.has_key(parts[0]):
-            db[parts[0]] = {parts[1] : (parts[2], parts[3])}
-
+            db[parts[0]] = {parts[1] : (parts[2], parts[3], parts[4])}
         else:
-            db[parts[0]][parts[1]] = (parts[2], parts[3])
+            db[parts[0]][parts[1]] = (parts[2], parts[3], parts[4])
 
     f.close()
     return db
@@ -418,7 +430,7 @@ def listdupes(db, conf, cat):
                                 print ddkey, ddval, "(%s)" % dd
 
     elif not cat in alldbs:
-        print "Catagory does not exist."
+        error("Catagory '%s' does not exist." % cat)
         sys.exit(1)
 
     # Use specified category.
@@ -444,7 +456,7 @@ def listdupes(db, conf, cat):
                     print
 
     if dupeids == []:
-        print "No duplicates found."
+        warning("No duplicates found.")
 
 
 
@@ -453,8 +465,10 @@ def listdupes(db, conf, cat):
 def list(db, config, category, destination = None):
     pnewline = misc.get('newline')
     pcolor = misc.get('color')
+    pscore = misc.get('score')
     pcat = misc.get('category')
     pid = misc.get('id')
+
 
     if flatfile(config):
         # Nothing in database.
@@ -502,34 +516,38 @@ def list(db, config, category, destination = None):
             dbsel = cursor.fetchall()
 
         # Sorting is optional.
-        if ("sort." + category) in config.keys():
+        if misc.get('sort') is not None:
+            sortmethod = misc.get('sort')
+        elif ("sort." + category) in config.keys():
             sortmethod = config["sort." + category]
-
         elif "defval.sort" in config.keys():
             sortmethod = config["defval.sort"]
-
         else:
-            sortmethod = False
+            sortmethod = None
 
-        if sortmethod is not False:
+        if sortmethod is not None:
             # Sort by specified method.
             if flatfile(config):
                 if sortmethod == "title":
-                    dbsel = sorted(db[category].items(), key=lambda (k,v): (v[1].lower(),k))
+                    dbsel = sorted(db[category].items(), key=lambda (k,v): (v[2].lower(),k))
                 elif sortmethod == "id":
-                    dbsel = sorted(db[category].items(), key=lambda (k,v): (int(k),v[1]))
+                    dbsel = sorted(db[category].items(), key=lambda (k,v): (int(k),v[2]))
                 elif sortmethod == "time":
                     dbsel = sorted(db[category].items(), key=lambda (k,v): (v[0], k))
+                elif sortmethod == "score":
+                    dbsel = sorted(db[category].items(), key=lambda (k,v): (v[1], k))
                 else:
                     dbsel = dbsel
 
             else:
                 if sortmethod == "title":
-                    dbsel = sorted(dbsel, key=lambda (k,v,a,b): (v.lower(),k,a,b))
+                    dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (v.lower(),int(k),a,b,c))
                 elif sortmethod == "id":
-                    dbsel = sorted(dbsel, key=lambda (k,v,a,b): (int(k),v,a,b))
+                    dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (int(k),v,a,b,c))
                 elif sortmethod == "time":
-                    dbsel = sorted(dbsel, key=lambda (k,v,a,b): (a,k,v,b))
+                    dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (a,int(k),v,b,c))
+                elif sortmethod == "score":
+                    dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (int(c),int(k),v,a,b))
                 else:
                     dbsel = dbsel
 
@@ -537,52 +555,44 @@ def list(db, config, category, destination = None):
             printcategory(category, config)
 
         if flatfile(config):
-            for id, title in dbsel:
+            for id, value in dbsel:
+                title = value[2]
+                score = value[1]
                 # Make titles aligned.
-                title = title[1]
-                spacer = ''
-                for i in range(0, 3 - len(id)):
-                    spacer += ' '
+                sid = sscore = ' '
+                for i in range(4 - len(id)):
+                    sid += ' '
+                for i in range(7 - len(score)):
+                    sscore += ' '
 
                 # Showing ID when listing is optional.
-                if "general.showid" not in config.keys() or not pid:
-                    output += title + newline
-
-                elif config["general.showid"] == '1':
-                    if pcolor:
-                        output += C['bold'] + id + C['default'] + spacer + ' : ' + title + newline
-
-                    else:
-                        output += id + spacer + ' : ' + title + newline
-
-                else:
-                    output += title + newline
+                if configvalue(config, "general.showid") is '1' and pid:
+                    output += bold(id, pcolor) + sid + ': '
+                if configvalue(config, "general.showscore") is '1' and pscore:
+                    output += bold(score, pcolor) + sscore + ': '
+                output += title + newline
  
         # SQL
         else:
-            for id, title, date, cat in dbsel:
+            for id, title, date, cat, score in dbsel:
                 if not limitedtimeago(date):
                     continue
 
                 # Make titles aligned.
                 id = str(id)
-                spacer = ''
-                for i in range(0, 3 - len(id)):
-                    spacer += ' '
+                sid = sscore = ''
+                for i in range(4 - len(id)):
+                    sid += ' '
+                for i in range(7 - len(str(score))):
+                    sscore += ' '
 
                 # Showing ID when listing is optional.
-                if "general.showid" not in config.keys() or not pid:
-                    output += title + newline
-            
-                elif config["general.showid"] == '1':
-                    if pcolor:
-                        output += C['bold'] + id + C['default'] + ' ' + spacer + ': ' + title + newline
-                    else:
-                        output += id + ' ' + spacer + ': ' + title + newline
+                if configvalue(config, "general.showid") is '1' and pid:
+                    output += bold(id, pcolor) + sid + ': '
+                if configvalue(config, "general.showscore") is '1' and pscore:
+                    output += bold(str(score), pcolor) + sscore + ': '
+                output += title + newline
 
-                else:
-                    output += title + newline
- 
     output = output.strip()
     if len(output) is 0:
         note("Could not find any items matching your criterion.")
@@ -593,6 +603,23 @@ def list(db, config, category, destination = None):
 
     print output
     return
+
+
+
+
+def configvalue(config, ident):
+    if ident in config.keys():
+        return config[ident]
+    return None
+
+
+
+
+def bold(string, color = True):
+    if color:
+        return C['bold'] + string + C['default']
+    return string
+
 
 
 def limitedtimeago(date):
@@ -629,7 +656,7 @@ def add(db, config, name, category, dbfile):
         for k, v in db.iteritems():
             l += v.keys()
 
-        id = "0"
+        id = '0'
         for i in l:
             if int(i) > int(id):
                 id = str(i)
@@ -732,7 +759,7 @@ def timepassed(date):
 def note(text):
     if misc.get('verbose') is not 0:
 	if misc.get('color'):
-	    print C["bold"] + C["green"] + "Note: " + C["default"] + text
+	    print "%s%sNote: %s%s" % (C["bold"], C["green"], C["default"], text)
 	else:
 	    print "Note: " + text
     return
@@ -740,7 +767,7 @@ def note(text):
 def error(text):
     if misc.get('verbose') is not 0:
 	if misc.get('color'):
-            print C["bold"] + C["red"] + "Error: " + C["default"] + text
+            print "%s%sError: %s%s" % (C["bold"], C["red"], C["default"], text)
 	else:
 	    print "Error: " + text
     return
@@ -748,7 +775,7 @@ def error(text):
 def warning(text):
     if misc.get('verbose') is not 0:
 	if misc.get('color'):
-	    print C["bold"] + C["yellow"] + "Warning: " + C["default"] + text
+	    print "%s%sWarning: %s%s" % (C["bold"], C["yellow"], C["default"], text)
 	else:
 	    print "Warning: " + text
     return
@@ -811,7 +838,7 @@ def change(db, conf, id, val_orig, dbfile):
                 old = result[0][1]
                 dbexec(db, "UPDATE item SET title = '"+val+"' WHERE id = '"+i+"'", None, True)
 
-            print "Changed item '"+c(i)+"' from '"+c(old)+"' to '" + c(val)+"'."
+            note("Changed item '"+c(i)+"' from '"+c(old)+"' to '" + c(val)+"'.")
 
     else:
         for i in id:
@@ -827,7 +854,7 @@ def change(db, conf, id, val_orig, dbfile):
                 old = result[0][1]
                 dbexec(db, "UPDATE item SET title = '"+val+"' WHERE id = '"+i+"'", None, True)
 
-            print "Changed item '"+c(i)+"' from '"+c(old)+"' to '" + c(val)+"'."
+            note("Changed item '"+c(i)+"' from '"+c(old)+"' to '" + c(val)+"'.")
 
     savedb(db, conf, dbfile)
 
@@ -898,7 +925,7 @@ def getcat(db, id):
             return d
     
     # We didn't find it.
-    error("Catagory of title with ID '"+c(id)+"' not found.")
+    error("Catagory of title with ID '%s' not found." % c(id))
     sys.exit(1)
 
 
@@ -983,7 +1010,7 @@ def info(db, conf, ids):
     print
 
     sys.stdout.write("ID")
-    for i in (range(sl_id+1)):
+    for i in (range(sl_id + 1)):
         sys.stdout.write(" ")
     sys.stdout.write("TITLE")
     for i in (range(sl_title - 2)):
@@ -1098,7 +1125,7 @@ def changedb(config, dbfile):
 def main():
     # Check if config and database files exists and are read- and writeable.
     if not os.path.exists(DB) or not os.path.exists(CONFIG):
-        print C['r'] + "Error: " + C['d'] + "Database and/or config file not found. Should be in ~/.sire/!"
+        error("Database and/or config file not found. Should be in ~/.sire/!")
         sys.exit(1)
 
     # Read the config file.
@@ -1163,6 +1190,12 @@ def main():
     if opts.force is True:
 	misc.set('force', True)
 
+    if opts.sort is not None:
+        misc.set('sort', opts.sort)
+        
+    if opts.score is False:
+        misc.set('score', False)
+
     if opts.edits is not None:
 	misc.set('edits', opts.edits)
 
@@ -1191,6 +1224,9 @@ def main():
         else:
             cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+id+"'", None, False)
             result = cursor.fetchall()
+            if result is ():
+                error("There is no item with ID '" + c(id) + "'.")
+                sys.exit(1)
             curcat = result[0][3]
 
         # Try default for current category.
