@@ -1,3 +1,9 @@
+Mon Sep  7 12:41:47 CEST 2009: scorch
+	* fixed a bug that made any default category using more than one
+	  character not list when listing default category
+	* ability to assign a score to an item
+	* support for --show-score, -W. Overrides config value
+
 Sat Sep  5 20:15:11 CEST 2009: scorch
 	* sort using items score
 	* specify sort on command line
