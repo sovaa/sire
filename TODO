@@ -10,8 +10,10 @@
 * man page
 
 0.2.1:
+* fix broken search
+* fix wrong category being refered to when adding already existing item
 * per category show score/table/id
-* replace single and double quotes with html equivalent, sql safe
+--- * replace single and double quotes with html equivalent, sql safe
 --- * support for --show-score, -W overrides config value
 --- * ability to assign a score to an item
 --- * sort using items score

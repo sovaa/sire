@@ -1164,6 +1164,10 @@ def newcategory(configfile, title, id):
     config = ConfigParser.ConfigParser()
     config.read(configfile)
 
+    if config.has_option("categories", id):
+        error("Category with ID '%s' already exists with the title '%s'." % (c(id), c(title)))
+        sys.exit(1)
+
     for section in sections:
 	if not config.has_section(section):
 	    config.add_section(section)
@@ -1185,7 +1189,7 @@ def newcategory(configfile, title, id):
 
     saveconfig(config, configfile)
 
-    note("Added category '"+c(id)+"' with title '"+c(title)+"'.")
+    note("Added category '%s' with title '%s'." % (c(id), c(title)))
 
     return
 

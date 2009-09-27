@@ -1,4 +1,9 @@
+Sun Sep 27 06:26:03 CEST 2009: scorch
+	* error message now shown when adding a new category that already
+	  exists
+
 Mon Sep  7 12:41:47 CEST 2009: scorch
+	* replace single and double quotes with html equivalent, sql safe
 	* fixed a bug that made any default category using more than one
 	  character not list when listing default category
 	* ability to assign a score to an item
