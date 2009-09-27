@@ -829,6 +829,7 @@ def timepassed(date):
         str(date/60/60 % 24), str(date/60 % 60), str(date % 60))
 
 def note(text):
+    text = format_title_out(text)
     if misc.get('verbose') is not 0:
 	if misc.get('color'):
 	    print "%s%sNote: %s%s" % (C["bold"], C["green"], C["default"], text)
@@ -837,6 +838,7 @@ def note(text):
     return
 
 def error(text):
+    text = format_title_out(text)
     if misc.get('verbose') is not 0:
 	if misc.get('color'):
             print "%s%sError: %s%s" % (C["bold"], C["red"], C["default"], text)
@@ -845,6 +847,7 @@ def error(text):
     return
 
 def warning(text):
+    text = format_title_out(text)
     if misc.get('verbose') is not 0:
 	if misc.get('color'):
 	    print "%s%sWarning: %s%s" % (C["bold"], C["yellow"], C["default"], text)

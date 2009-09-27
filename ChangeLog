@@ -1,6 +1,7 @@
 Sun Sep 27 06:26:03 CEST 2009: scorch
 	* error message now shown when adding a new category that already
 	  exists
+	* note, error, warning now use format_title_out
 
 Mon Sep  7 12:41:47 CEST 2009: scorch
 	* replace single and double quotes with html equivalent, sql safe
