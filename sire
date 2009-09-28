@@ -58,8 +58,9 @@ ERROR = {
     "destscore":   "Need an item to assign the score to. Use --destination, -D.",
     "destdefcat":  "Need to specify category, default category not found. Use --destination, -D or edit your config file.", 
     "conf":        "Config file didn't exist. I created it for you. Populate it before continuing.",
-    "catdesc":     "There is no Catagory description for category '%s'",
-    "nocat":       "Catagory '%s' does not exist.",
+    "catdesc":     "There is no category description for category '%s'.",
+    "nocat":       "Category '%s' does not exist.",
+    "notitle":     "There is no item with title '%s'."
     "nodb":        "Database didn't exist. I created it for you.",
     "emptydb":     "Your database is empty.",
     "emptycat":    "Empty category '%s'.",
@@ -222,11 +223,59 @@ def get_title_from_id(db, config, id):
         return False
 
     # else we're using sql
-    cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+id+"'", None, False)
+    cursor = dbexec(db, "SELECT * FROM item WHERE id = '%s'" % id, None, False)
     res = cursor.fetchall()
     if len(res) > 0:
         return res[0][1]
     error(ERROR["item"] % c(id)) 
+    sys.exit(1)
+
+
+
+
+def get_category_from_title(db, config, title):
+    if flatfile(config):
+        for d in db:
+            if title in db[d].values():
+                return d
+
+        # We didn't find it.
+        error(ERROR["notitle"] % c(title))
+        sys.exit(1)
+
+    cursor = dbexec(db, "SELECT cat FROM item WHERE title = '%s'" % format_text_in(title), None, False)
+    res = cursor.fetchall()
+    if len(res) > 0:
+        return res[0][0]
+    error(ERROR["notitle"] % c(title))
+    sys.exit(1)
+
+
+
+
+# Get the category of a title with a certain ID.
+def get_category_from_id(db, config, id):
+    if flatfile(config):
+        for d in db:
+            if id in db[d].keys():
+                return d
+
+        # We didn't find it.
+        error(ERROR["nocat"] % c(id))
+        sys.exit(1)
+
+    cursor = dbexec(db, "SELECT cat FROM item WHERE id = '%s'" % id, None, False)
+    res = cursor.fetchall()
+    if len(res) > 0:
+        return res[0][0]
+    error(ERROR["item"] % c(id))
+    sys.exit(1)
+    
+
+
+
+
+
 
 # Internal function to check for already existing items.
 def itemexists(db, config, item):
@@ -625,7 +674,7 @@ def list(db, config, category, destination = None):
                     output += bold(id, pcolor) + sid + ': '
                 if gscore in l1 and pscore in l1 or gscore in l2 and pscore in l2:
                     output += bold(score, pcolor) + sscore + ': '
-                output += format_title_out(title) + newline
+                output += format_text_out(title) + newline
  
         # SQL
         else:
@@ -650,7 +699,7 @@ def list(db, config, category, destination = None):
                     output += bold(id, pcolor) + sid + ': '
                 if gscore in l1 and pscore in l1 or gscore in l2 and pscore in l2:
                     output += bold(str(score), pcolor) + sscore + ': '
-                output += format_title_out(title) + newline
+                output += format_text_out(title) + newline
 
     output = output.strip()
     if len(output) is 0:
@@ -664,14 +713,14 @@ def list(db, config, category, destination = None):
     return
 
 
-def format_title_in(title):
+def format_text_in(title):
     import re
     title = re.sub('"', "&#34;", title)
     title = re.sub("'", "&#39;", title)
     return title
 
 
-def format_title_out(title):
+def format_text_out(title):
     import re
     title = re.sub("&#34;", '"', title)
     title = re.sub("&#39;", "'", title)
@@ -707,11 +756,11 @@ def add(db, config, name, category, dbfile):
         error(ERROR["nocat"] % c(category))
         sys.exit(1)
 
-    name = format_title_in(name)
+    name = format_text_in(name)
     dup = getdup(config, category)
 
     if dup == "0" and itemexists(db, config, name):
-        warning("Item already exists in category '" + c(category) + "'. Use (--force, -f) to add anyway.")
+        warning("Item already exists in category '" + c(get_category_from_title(db, config, name)) + "'. Use (--force, -f) to add anyway.")
 	if not misc.get('force'):
             sys.exit(1)
 
@@ -809,7 +858,7 @@ def delete(db, conf, ids, dbfile):
         if deleted:
             date = timepassed(date)
 
-            note("Deleted item with ID '%s' and title '%s' from category '%s'." % (c(id), c(format_title_out(title)), c(d)))
+            note("Deleted item with ID '%s' and title '%s' from category '%s'." % (c(id), c(format_text_out(title)), c(d)))
             note("It was in that category for %s years, %s days, %s hours, %s minutes and %s seconds." % 
                 (date[0], date[1], date[2], date[3], date[4]))
 
@@ -829,7 +878,7 @@ def timepassed(date):
         str(date/60/60 % 24), str(date/60 % 60), str(date % 60))
 
 def note(text):
-    text = format_title_out(text)
+    text = format_text_out(text)
     if misc.get('verbose') is not 0:
 	if misc.get('color'):
 	    print "%s%sNote: %s%s" % (C["bold"], C["green"], C["default"], text)
@@ -838,7 +887,7 @@ def note(text):
     return
 
 def error(text):
-    text = format_title_out(text)
+    text = format_text_out(text)
     if misc.get('verbose') is not 0:
 	if misc.get('color'):
             print "%s%sError: %s%s" % (C["bold"], C["red"], C["default"], text)
@@ -847,7 +896,7 @@ def error(text):
     return
 
 def warning(text):
-    text = format_title_out(text)
+    text = format_text_out(text)
     if misc.get('verbose') is not 0:
 	if misc.get('color'):
 	    print "%s%sWarning: %s%s" % (C["bold"], C["yellow"], C["default"], text)
@@ -895,7 +944,7 @@ def change(db, conf, id, val_orig, dbfile):
                 # This means "if %(#), do this".
                 if not cmp(v, '#'):
                     if flatfile(conf):
-                        rval = db[getcat(db, i)][i][1]
+                        rval = db[get_category_from_id(db, conf, i)][i][1]
                     else:
                         cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+i+"'", None, False)
                         result = cursor.fetchall()
@@ -903,7 +952,7 @@ def change(db, conf, id, val_orig, dbfile):
 
                 else:
                     if flatfile(conf):
-                        rval = db[getcat(db, v)][v][1]
+                        rval = db[get_category_from_id(db, conf, v)][v][1]
                     else:
                         cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+v+"'", None, False)
                         result = cursor.fetchall()
@@ -913,7 +962,7 @@ def change(db, conf, id, val_orig, dbfile):
                 val = p.sub(rval, val)
 
             if flatfile(conf):
-                cat = getcat(db, i)
+                cat = get_category_from_id(db, conf, i)
                 old = db[cat][i][1]
                 date = db[cat][i][0]
                 db[cat][i] = (date, val)
@@ -923,13 +972,13 @@ def change(db, conf, id, val_orig, dbfile):
                 old = result[0][1]
                 dbexec(db, "UPDATE item SET title = '"+val+"' WHERE id = '"+i+"'", None, True)
 
-            note("Changed item with ID '%s' from '%s' to '%s'." % (c(i), c(format_title_out(old)), c(format_title_out(val))))
+            note("Changed item with ID '%s' from '%s' to '%s'." % (c(i), c(format_text_out(old)), c(format_text_out(val))))
 
     else:
         for i in id:
             val = val_orig
             if flatfile(conf):
-                cat = getcat(db, i)
+                cat = get_category_from_id(db, config, i)
                 old = db[cat][i][1]
                 date = db[cat][i][0]
                 db[cat][i] = (date, val)
@@ -939,7 +988,7 @@ def change(db, conf, id, val_orig, dbfile):
                 old = result[0][1]
                 dbexec(db, "UPDATE item SET title = '"+val+"' WHERE id = '"+i+"'", None, True)
 
-            note("Changed item with ID '%s' from '%s' to '%s'." % (c(i), c(format_title_out(old)), c(format_title_out(val))))
+            note("Changed item with ID '%s' from '%s' to '%s'." % (c(i), c(format_text_out(old)), c(format_text_out(val))))
 
     savedb(db, conf, dbfile)
 
@@ -990,7 +1039,7 @@ def move(db, conf, id, newcat, dbfile):
         title = result[0][1]
         d = result[0][3]
 
-    note("Moved item with ID '%s' and title '%s' from category '%s' to '%s'." % (c(id), c(format_title_out(title)), c(d), c(newcat)))
+    note("Moved item with ID '%s' and title '%s' from category '%s' to '%s'." % (c(id), c(format_text_out(title)), c(d), c(newcat)))
     note("It was in that category for %s years, %s days, %s hours, %s minutes and %s seconds." % 
         (date[0], date[1], date[2], date[3], date[4]))
 
@@ -1003,15 +1052,7 @@ def c(text):
     return text
 
 
-# Get the category of a title with a certain ID.
-def getcat(db, id):
-    for d in db:
-        if id in db[d].keys():
-            return d
-    
-    # We didn't find it.
-    error(ERROR["nocat"] % c(id))
-    sys.exit(1)
+
 
 
 
@@ -1073,7 +1114,7 @@ def info(db, conf, ids):
                 date_in_cat = timepassed(date)
                 cat = conf["categories." + d]
 
-                items.append((id, format_title_out(title), cat, date_added, date_in_cat))
+                items.append((id, format_text_out(title), cat, date_added, date_in_cat))
 
                 if len(id) > sl_id:
                     sl_id = len(id)
@@ -1202,14 +1243,14 @@ def newcategory(configfile, title, id):
 
 def setscore(db, dbfile, config, id, score):
     if flatfile(config):
-        tmp = db[getcat(db, id)][id]
-        db[getcat(db, id)][id] = (tmp[0], score, tmp[2])
+        tmp = db[get_category_from_id(db, config, id)][id]
+        db[get_category_from_id(db, config, id)][id] = (tmp[0], score, tmp[2])
         savedb(db, config, dbfile)
     else:
         dbexec(db, "UPDATE item SET score = '"+score+"' WHERE id = '"+id+"'", None, True)
 
     title = get_title_from_id(db, config, id)
-    note("Assigned score '%s' to item with ID '%s' and value '%s'." % (c(score), c(id), c(format_title_out(title))))
+    note("Assigned score '%s' to item with ID '%s' and value '%s'." % (c(score), c(id), c(format_text_out(title))))
 
     return
 
@@ -1325,15 +1366,7 @@ def main():
 	    return
 
 	# User didn't specify what category to move to, try to use the default value.
-        if flatfile(config):
-            curcat = getcat(db, id)
-        else:
-            cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+id+"'", None, False)
-            result = cursor.fetchall()
-            if result is ():
-                error(ERROR["item"] % c(id))
-                sys.exit(1)
-            curcat = result[0][3]
+        curcat = get_category_from_id(db, config, id)
 
         # Try default for current category.
         newcat = "defval.move-" + curcat

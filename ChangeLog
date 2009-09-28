@@ -1,3 +1,13 @@
+Mon Sep 28 05:05:05 CEST 2009: scorch
+	* changed format_title_(in|out) to format_text_(in|out)
+	* changed getcat() to get_category_from_id()
+	* made get_category_from_id support sql too; config now needed as
+	  argument
+	* added get_category_from_title()
+	* added get_title_from_id()
+	* fixed wrong category being refered to when adding already existing
+	  item
+
 Sun Sep 27 06:26:03 CEST 2009: scorch
 	* error message now shown when adding a new category that already
 	  exists
