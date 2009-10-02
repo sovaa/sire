@@ -1,3 +1,21 @@
+Fri Oct  2 20:39:45 CEST 2009: scorch
+	* introduced per category duplicate policies which can handle somewhat
+	  comlicated relations. There are three different policies which may
+	  be used at the time; 0, 1 and 2.
+	    0, don't add to this category if the item already exists in any
+	       other (or this) category)
+	    1, don't add to this category if the item already exists in -this-
+	       category, but will add if it already exists in another category
+	    2, add even if the item already exists in this and/or another
+	       category
+	    Example
+	  If category A has policy 1, and category B has policy 0, and we add
+	  an item which exists in category A to category B, this usually
+	  wouldn't be allowed, sine B has policy 0, but because the duplicate
+	  is in category A with policy 1 (which allows duplicates in -other-
+	  categories), the item will be added to category B anyway.
+	* changed getdup to get_duplicate_policy
+
 Mon Sep 28 05:05:05 CEST 2009: scorch
 	* changed format_title_(in|out) to format_text_(in|out)
 	* changed getcat() to get_category_from_id()

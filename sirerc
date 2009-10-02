@@ -15,6 +15,7 @@
 ; or searching.
 [general]
 showid: 1
+showtable: 1
 
 ; defval.list 
 ; specifies the default caagory when listing ('sire -l' will list the specified
@@ -66,6 +67,24 @@ color: green
 [find]
 showcats: 1
 edits: 0
+
+; Per category duplicate policy when adding items.
+;
+; If set to 0, will not add to this category if it already exists in this or 
+; any other category if not forcing (--force, -F). The only exception is if
+; the duplicate is in a category that have a duplicate policy set to 1 or 2,
+; then it will be added anyway.
+;
+; If set to 1, will add to this category even if it already exists in -another-
+; category, but will not add if it exists in the current category.
+;
+; If set to 2, will add without complain to this category even if it exists in
+; another category and/or this one.
+[duplicates]
+1: 0
+2: 0
+0: 1
+abbenay: 1
 
 ; Catagories are specified by 'key': 'description'
 [catagories]

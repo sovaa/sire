@@ -60,7 +60,7 @@ ERROR = {
     "conf":        "Config file didn't exist. I created it for you. Populate it before continuing.",
     "catdesc":     "There is no category description for category '%s'.",
     "nocat":       "Category '%s' does not exist.",
-    "notitle":     "There is no item with title '%s'."
+    "notitle":     "There is no item with title '%s'.",
     "nodb":        "Database didn't exist. I created it for you.",
     "emptydb":     "Your database is empty.",
     "emptycat":    "Empty category '%s'.",
@@ -190,8 +190,8 @@ def itemexistsincat(db, config, cat, item):
 	return False
 
     # SQL
-    cursor = dbexec(db, "SELECT * FROM item WHERE title = '" + title + \
-	"' AND category = '" + cat + "'", None, False)
+    cursor = dbexec(db, "SELECT * FROM item WHERE title = '" + item + \
+	"' AND cat = '" + cat + "'", None, False)
     if len(cursor.fetchall()) > 0:
 	return True
     return False
@@ -255,6 +255,10 @@ def get_category_from_title(db, config, title):
 
 # Get the category of a title with a certain ID.
 def get_category_from_id(db, config, id):
+    return get_category_from_title(db, config, get_title_from_id(db, config, id))
+    
+'''
+def get_category_from_id(db, config, id):
     if flatfile(config):
         for d in db:
             if id in db[d].keys():
@@ -270,7 +274,7 @@ def get_category_from_id(db, config, id):
         return res[0][0]
     error(ERROR["item"] % c(id))
     sys.exit(1)
-    
+''' 
 
 
 
@@ -293,7 +297,7 @@ def itemexists(db, config, item):
     return False
 
 
-def getdup(config, cat):
+def get_duplicate_policy(config, cat):
     if not cat is None and ("duplicates." + cat) in config.keys():
 	return config["duplicates." + cat]
 
@@ -757,15 +761,18 @@ def add(db, config, name, category, dbfile):
         sys.exit(1)
 
     name = format_text_in(name)
-    dup = getdup(config, category)
+    dup = get_duplicate_policy(config, category)
 
     if dup == "0" and itemexists(db, config, name):
-        warning("Item already exists in category '" + c(get_category_from_title(db, config, name)) + "'. Use (--force, -f) to add anyway.")
-	if not misc.get('force'):
-            sys.exit(1)
+        existing_category = get_category_from_title(db, config, name)
+        existing_duplicate = get_duplicate_policy(config, existing_category)
+        if existing_duplicate not in ["1", "2"]:
+            warning("Item already exists in category '%s'. Use (--force, -f) to add anyway." % c(existing_category))
+    	    if not misc.get('force'):
+                sys.exit(1)
 
     if dup == "1" and itemexistsincat(db, config, category, name):
-        warning("Item already exists in category '" + c(category) + "'. Use (--force, -f) to add anyway.")
+        warning("Item already exists in category '%s'. Use (--force, -f) to add anyway." % c(category))
 	if not misc.get('force'):
             sys.exit(1)
 

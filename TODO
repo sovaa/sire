@@ -11,8 +11,8 @@
 
 0.2.1:
 * fix broken search
+--- * support for duplicate policies
 --- * fix wrong category being refered to when adding already existing item
-* per category show score/table/id
 --- * change format_title_(in|out) to format_text_(in|out)
 --- * replace single and double quotes with html equivalent, sql safe
 --- * support for --show-score, -W overrides config value
@@ -21,7 +21,6 @@
 --- * specify sort on command line
 * support for general.showtable which shows description for the different columns
 --- * support for general.showscore which shows the score in the output table
-* support to change the separator from the config file
 
 0.2.0:
 --- * updated the examples
