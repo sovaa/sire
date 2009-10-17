@@ -1,3 +1,7 @@
+Sat Oct 17 09:19:45 CEST 2009: scorch
+	* fixed (--change, -c) didn't work well when using apostrophes; didn't
+	  use format_text_in()
+
 Fri Oct  2 20:39:45 CEST 2009: scorch
 	* introduced per category duplicate policies which can handle somewhat
 	  comlicated relations. There are three different policies which may

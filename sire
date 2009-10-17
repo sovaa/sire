@@ -934,7 +934,7 @@ def change(db, conf, id, val_orig, dbfile):
     import re
     # Find all '%([0-9]+)' in 'val'.
     id = id.split(',')
-    res = re.findall(r'\%\(([0-9]+|#)\)', val_orig)
+    res = re.findall(r'\%\(([0-9]+|#)\)', format_text_out(val_orig))
 
     rids = []
     for k, i in enumerate(id):
@@ -968,6 +968,7 @@ def change(db, conf, id, val_orig, dbfile):
                 p = re.compile('\%\(' + v + '\)')
                 val = p.sub(rval, val)
 
+            val = format_text_in(val)
             if flatfile(conf):
                 cat = get_category_from_id(db, conf, i)
                 old = db[cat][i][1]
@@ -983,7 +984,7 @@ def change(db, conf, id, val_orig, dbfile):
 
     else:
         for i in id:
-            val = val_orig
+            val = format_text_in(val_orig)
             if flatfile(conf):
                 cat = get_category_from_id(db, config, i)
                 old = db[cat][i][1]
