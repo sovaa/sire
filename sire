@@ -791,9 +791,9 @@ def add(db, config, name, category, dbfile):
 
         id = str(int(id) + 1)
 	if not category in db.keys():
-	    db[category] = {id: (date, name)}
+	    db[category] = {id: (date, 0, name)}
 	else:
-	    db[category][id] = (date, name)
+	    db[category][id] = (date, 0, name)
 	savedb(db, config, dbfile)
 
     else:

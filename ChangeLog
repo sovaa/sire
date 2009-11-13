@@ -1,3 +1,6 @@
+Fri Nov 13 11:18:42 CET 2009: scorch
+	* flatfile now works fine with adding
+
 Sat Oct 17 09:19:45 CEST 2009: scorch
 	* fixed (--change, -c) didn't work well when using apostrophes; didn't
 	  use format_text_in()
