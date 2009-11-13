@@ -286,7 +286,7 @@ def itemexists(db, config, item):
     if flatfile(config):
         for key in db.keys():
             for val in db[key].values():
-                if val[1] == item:
+                if val[2] == item:
                     return True
         return False
 
