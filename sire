@@ -236,8 +236,9 @@ def get_title_from_id(db, config, id):
 def get_category_from_title(db, config, title):
     if flatfile(config):
         for d in db:
-            if title in db[d].values():
-                return d
+            for b in db[d].values():
+                if title in b:
+                    return d
 
         # We didn't find it.
         error(ERROR["notitle"] % c(title))
