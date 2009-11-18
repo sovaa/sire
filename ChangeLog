@@ -1,3 +1,10 @@
+Wed Nov 18 18:25:03 CET 2009: scorch
+	* get_id_from_title() now returns the correct ID when duplicate titles
+	  exists
+	* new function; enforce_duplicate_policy(). Checks duplicate policy
+	  for a category and enforces it. Previously only used when adding,
+	  now used when moving too.
+
 Fri Nov 13 11:18:42 CET 2009: scorch
 	* flatfile now works fine with adding (introduction of score prob)
 	* itemexists() now works fine with adding (introduction of score prob)
