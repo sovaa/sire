@@ -337,29 +337,34 @@ def approxsearch(db, conf, edits, sstr):
     elif edits < 0:
         edits = 0
 
-    for str in sstr:
+    if not flatfile(conf):
+        cursor = dbexec(db, "SELECT * FROM item", None, False)
+        db = cursor.fetchall()
+
+    for search in [sstr]:
         # allow at most 'edits' edits 
-        ap = Apse.Approx(str.lower(), edit=edits)
+        ap = Apse.Approx(search.lower(), edit=edits)
 
-        for key in db.keys():
-            for (id, val) in db[key].items():
-                val = val[1]
-                val_orig = val.lower()
-                fnd = bool(ap.match(val_orig))
-                dst = ap.dist(val_orig)
-                res = (id, "%s" % val, ("%d", dst), key)
+        for key in db: 
+            val = key[1]
+            id = key[0]
+            cat = key[3]
+            val_orig = val.lower()
+            fnd = bool(ap.match(val_orig))
+            dst = ap.dist(val_orig)
+            res = (id, val, dst, cat)
 
-                if fnd and val not in reslist:
-                    reslist.append(res)
+            if fnd and val not in reslist:
+                reslist.append(res)
 
-                # Try to match if we replace some characters.
-                val_rep = replace_all(val.lower(), reps)
-                fnd_rep = bool(ap.match(val_rep))
-                dst_rep = ap.dist(val)
-                res_rep = (id, "%s" % val, ("%d", dst_rep), key)
+            # Try to match if we replace some characters.
+            val_rep = replace_all(val.lower(), reps)
+            fnd_rep = bool(ap.match(val_rep))
+            dst_rep = ap.dist(val)
+            res_rep = (id, val, dst_rep, cat)
 
-                if not fnd and fnd_rep and val not in reslist:
-                    reslist.append(res_rep)
+            if not fnd and fnd_rep and val not in reslist:
+                reslist.append(res_rep)
 
     if reslist != []:
         showcats = False
@@ -387,7 +392,7 @@ def approxsearch(db, conf, edits, sstr):
 
             # Make titles aligned.
             spacer = ''
-            for i in range(0, 3 - len(res[0])):
+            for i in range(5 - len(str(res[0]))):
                 spacer += ' '
 
             # Showing ID when listing is optional.
@@ -395,7 +400,7 @@ def approxsearch(db, conf, edits, sstr):
                 print res[1]
             
             elif conf["general.showid"] == '1':
-                print C['bold'] + res[0] + C['default'], spacer + ':', res[1]
+                print "%s%s%s %s: %s" % (C['bold'], res[0], C['default'], spacer, format_text_out(res[1]))
 
     else:
         warning("No matches found!")
@@ -569,6 +574,32 @@ def listdupes(db, conf, cat):
 
 
 
+def print_table_head(pid, pscore, cw):
+    LABEL = ['TITLE', 'ID', 'SCORE']
+    output = ''
+
+    for i in range(3):
+        cw[i] -= len(LABEL[i])
+        if cw[i] % 2 != 0:
+            cw[i] += 1
+
+    for i in range(3):
+        LABEL[i] = ' '*(cw[i]/2) + LABEL[i] + ' '*(cw[i]/2)
+
+    if pid:
+        output += LABEL[1][:-1] + '|'
+    if pscore in [0, False]:
+        output += LABEL[2] + ' |'
+    output += LABEL[0]
+
+    print output
+    # sum of all label lengths
+    print '-'*(sum([len(x) for x in LABEL]) + 2)
+    return
+
+
+
+
 # List either all categories or only the default category.
 def list(db, config, category, destination = None):
     pnewline = misc.get('newline')
@@ -576,6 +607,10 @@ def list(db, config, category, destination = None):
     pscore = misc.get('score')
     pcat = misc.get('category')
     pid = misc.get('id')
+
+    # column width
+    colw_score = 7
+    colw_id = 5
 
     if flatfile(config):
         # Nothing in database.
@@ -609,6 +644,23 @@ def list(db, config, category, destination = None):
     if category == "all":  dbs = alldbs
     elif category == None: dbs = [config["defval.list"]]
     else:                  dbs = [category]
+
+    if 'general.showtable' in config.keys() and config['general.showtable'] is '1':
+        if newline is '\n':
+            colw_title = 0
+            for category in dbs:
+                if flatfile(config):
+                    dbsel = db[category].items()
+                    for id, val in dbsel:
+                        if len(val[2]) > colw_title:
+                            colw_title = len(val[2])
+                else:
+                    cursor = dbexec(db, "SELECT * FROM item WHERE cat = '"+category+"'", None, False)
+                    dbsel = cursor.fetchall()
+                    for id, title, date, cat, score in dbsel:
+                        if len(title) > colw_title:
+                            colw_title = len(title)
+            print_table_head(pid, pscore, [colw_title, colw_id, colw_score])
 
     for category in dbs:
         if category not in alldbs:
@@ -692,9 +744,9 @@ def list(db, config, category, destination = None):
                 # Make titles aligned.
                 id = str(id)
                 sid = sscore = ''
-                for i in range(4 - len(id)):
+                for i in range(colw_id - len(id)):
                     sid += ' '
-                for i in range(7 - len(str(score))):
+                for i in range(colw_score - len(str(score))):
                     sscore += ' '
 
                 l1 = ['1', None, False]
@@ -1239,7 +1291,7 @@ def newcategory(configfile, title, id):
 
     config.set("categories", id, title)
     confs = [
-        ("defval", "move-" + id, id), 
+        ("move", id, id), 
         ("defval", "list", id), 
         ("defval", "add", id),
         ("defval", "sort", "title"),
@@ -1390,7 +1442,7 @@ def main():
         curcat = get_category_from_id(db, config, id)
 
         # Try default for current category.
-        newcat = "defval.move-" + curcat
+        newcat = "move." + curcat
         if not newcat in config.keys():
             # Otherwise try to use default for all categories.
             if not "defval.move" in config.keys():

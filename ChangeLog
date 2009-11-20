@@ -1,3 +1,10 @@
+Fri Nov 20 10:45:02 CET 2009: scorch
+	* search now works again (introduction of score prob)
+	* added config section 'move' and put all move-<cat>.<cat> there
+	  (renamed to just <cat>.<cat>)
+	* support for general.showtable which shows description for the 
+	  different columns
+
 Wed Nov 18 18:25:03 CET 2009: scorch
 	* get_id_from_title() now returns the correct ID when duplicate titles
 	  exists

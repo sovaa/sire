@@ -13,9 +13,24 @@
 ; general.showid
 ; If not specified or set to '0', no ID numbers will be printed while listing
 ; or searching.
+; 
+; general.showtable:
+; If not specified or set to '0', no table formation will be done on output to
+; show which columns is what. If set to '1', the output will look something
+; like the following:
+;
+; ID  | SCORE | TITLE
+; ------------------------------------------
+; 123 : 49    : Table example
+; 1   : 4000  : another example column
+;
+; general.showscore:
+; If not specified or set to '0', no score will be shown when listing a
+; category. If set to '1' it will show like in the above illustration.
 [general]
 showid: 1
 showtable: 1
+showscore: 0
 
 ; defval.list 
 ; specifies the default caagory when listing ('sire -l' will list the specified
@@ -25,14 +40,10 @@ showtable: 1
 ; Specifies the default catagory when adding ('sire -a <title>' will add the
 ; item '<title>' to the default catagory).
 ;
-; defval.move-<catagory>
-; Specifies the default catagory to move to from the catagory <catagory>. 
-; If not specified for a certain catagory, 'defval.move' will be used.
-;
 ; defval.move
-; Specifies the default catagory when changing ('sire -c <id>' will move the
-; item with ID '<id>' to the default catagory) if no defval.move-<catagory>
-; is specified.
+; Specifies the default catagory when moving if no move.<catagory> is 
+; specified ('sire -m <id>' will move the item with ID '<id>' to this 
+; catagory).
 ; 
 ; defval.color 
 ; Specifies the default color when printing catagory titles. If defval.color 
@@ -45,14 +56,19 @@ showtable: 1
 [defval]
 list: 1
 add: 1
-move-0: 1
-move-1: 2
-move-2: 1
-move-4: 10
-move-6: 5
 move: 2
 sort: title
 color: green
+
+; move.<catagory>
+; Specifies the default catagory to move to from the catagory <catagory>. 
+; If not specified for a certain catagory, 'defval.move' will be used.
+[move]
+0: 1
+1: 2
+learn: forget
+4: 10
+6: gk
 
 ; find.showcats
 ; If not specified or set to '0', results of a search will be sorted according

@@ -10,7 +10,8 @@
 * man page
 
 0.2.1:
-* fix broken search
+--- * add config section 'move' and put all move-<cat>.<cat> there
+--- * fix broken search
 --- * support for duplicate policies
 --- * fix wrong category being refered to when adding already existing item
 --- * change format_title_(in|out) to format_text_(in|out)
@@ -19,7 +20,7 @@
 --- * ability to assign a score to an item
 --- * sort using items score
 --- * specify sort on command line
-* support for general.showtable which shows description for the different columns
+--- * support for general.showtable which shows description for the different columns
 --- * support for general.showscore which shows the score in the output table
 
 0.2.0:
