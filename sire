@@ -906,7 +906,7 @@ def delete(db, conf, ids, dbfile):
         if flatfile(conf):
             for d in alldbs:
                 if db[d].has_key(id):
-                    title = db[d][id][1]
+                    title = db[d][id][2]
                     date = db[d][id][0]
                     del db[d][id]
                     deleted = True

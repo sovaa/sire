@@ -1,3 +1,7 @@
+Mon Nov 30 04:26:34 CET 2009: scorch
+	* removal of flatfile item showed score instead och title in verbose
+	  output (introduction of score)
+
 Fri Nov 20 10:45:02 CET 2009: scorch
 	* search now works again (introduction of score prob)
 	* added config section 'move' and put all move-<cat>.<cat> there
@@ -132,7 +136,7 @@ Fri Jul 24 23:54:32 CEST 2009: scorch
 
 Wed Jul 22 15:23:35 CEST 2009: scorch
 	* support for (--no-color, -o) for skipping colors when printing
-	* support for (--no-catagory, -t) for skipping catagory title when
+	* support for (--no-category, -t) for skipping category title when
 	  listing
 	* little better support for arguments, may now be somewhat mixed when
 	  using (--list, -l)
@@ -146,14 +150,14 @@ Wed Jun 17 22:29:47 CEST 2009: scorch
 
 Wed Jun 17 20:50:51 CEST 2009: scorch
 	* support for (--info, -i) to show information of an item (time added, 
-	  how long in catagory etc)
+	  how long in category etc)
 	* backup database before doing -anything-
 	* command line option when searching (--find, -f) to specify the number
 	  of allowed edits
 	* command line option to hide ID (--noid, -n)
 
 Tue Jun 16 02:51:22 CEST 2009: scorch
-	* When deleting an item, ID, title and catagory of the item is shown.
+	* When deleting an item, ID, title and category of the item is shown.
 	* Shows more info when changins titles.
 	* Fixed some error messages.
 
@@ -174,19 +178,19 @@ Sat Apr 25 19:24:15 CEST 2009: scorch
 Fri Apr 24 17:27:19 CEST 2009: scorch
 	* Searching (--find, -f) now works a little better. ._- is replaced to
 	  white spaces if it didn't match with them.
-	* Possibility to sort search results by relevance of catagory. If
-	  the latter is chosen, catagory names will be printed before all
-	  items that were found in that catagory.
+	* Possibility to sort search results by relevance of category. If
+	  the latter is chosen, category names will be printed before all
+	  items that were found in that category.
 	* Updated usage (--help, -h) to reflect the current revision.
 	* Added the ability to specify in the config file how many edits are
 	  allowed to be made of the search string when searching.
 
 Mon Feb  2 15:11:09 CET 2009: scorch
-	* Changing an item to an empty catagory is now possible.
+	* Changing an item to an empty category is now possible.
 
 Thu Jan 29 06:05:44 CET 2009: scorch
 	* Fixed listdupes (--list dupe [cat], -l dupe [cat]). Before when
-	  checking dupes in all catagories, no cross-catagories where checked.
+	  checking dupes in all categories, no cross-categories where checked.
 
 Tue Jan 27 19:24:01 CET 2009: scorch
 	* Added approximate searching (--find, -f) support.
@@ -195,12 +199,12 @@ Tue Jan 27 19:24:01 CET 2009: scorch
 	  'sire -d item1 [item2 [item3 [...]]]'
 
 Mon Dec 29 15:14:58 CET 2008: scorch
-	* Added support for 'sire -l dupe [catagory]' that lists duplicates.
-	  If not catagory is specified, dupes in all catagories will be shown.
+	* Added support for 'sire -l dupe [category]' that lists duplicates.
+	  If not category is specified, dupes in all categories will be shown.
 
 Sun Dec 28 17:48:36 CET 2008: scorch
 	* Moved all default values to a new section called 'defval'.
-	* Added support for default change-to catagory for each catagory.
+	* Added support for default change-to category for each category.
 
 Mon Dec  8 21:15:20 CET 2008: scorch
 	* Changed tabs in --help, -h to spaces.
@@ -210,42 +214,43 @@ Sun Dec  7 22:01:37 CET 2008: scorch
 	* Moved examples from --help to README.
 
 Sat Dec  6 21:25:22 CET 2008: scorch
-	* Fixed a bug that made 'sire -l 100' list items in catagory '1', '0'
+	* Fixed a bug that made 'sire -l 100' list items in category '1', '0'
 	  and then '0' again.
 	* Added 'colors.defcol' support in sirerc, that specifies default
-	  color for catagory titles if no color is specified for a specific
-	  catagory. If 'colors.defcol' is missing from sirerc, no color will
-	  be used if none is specified for a specific catagory.
-	* Added the catagory key after the catagory title when listing a
-	  catagory.
-	* Added support for 'sire -l titles'. List only catagory titles.
+	  color for category titles if no color is specified for a specific
+	  category. If 'colors.defcol' is missing from sirerc, no color will
+	  be used if none is specified for a specific category.
+	* Added the category key after the category title when listing a
+	  category.
+	* Added support for 'sire -l titles'. List only category titles.
 	* Added 'sort.defsrt' support in sirerc, that specified default
 	  sorting method to be used if no method specified for a specific
-	  catagory. If 'sort.defsrt' is missing from sirerc, no sorting will
-	  be used if none is specified for a specific catagory.
+	  category. If 'sort.defsrt' is missing from sirerc, no sorting will
+	  be used if none is specified for a specific category.
 	* Added section 'general'.
 	* Added 'general.showid' support in sirerc, that specifies if the ID
 	  of the titles should be printed or not when listing.
 
+Sat Dec  6 18:43:51 CET 2008: scorch
+	* Fixed a bug that made sorting by ID sort; "1, 10, 11, 2, 3, 31, ..."
+	* Fixed a bug that made sorting only work when printing one category.
+	* Made sorting optional.
+	* Added a check for category description. Now required.
+	* The ID field is always atleast four characters of wide now. 
+	* --change, -c now works. Moves a title from one category to another.
+	* Added 'categories.defcat-change' for default category to change a
+	  title to when using --change, -c.
+
 Fri Dec  5 21:30:19 CET 2008: scorch
 	* Changed the name from 'todo' to 'sire' (SimpleReminder).
 	* Added a configuration file (~/.sire/sirerc).
-	* Change/add/remove catagories using the config file.
-	* Default catagory for both '--list' and '--add' specified in config file.
-	* Different colors for different catagories specified in config file.
-	* Different catagories may be sorted by 'id' and 'title'.
+	* Change/add/remove categories using the config file.
+	* Default category for both '--list' and '--add' specified in config file.
+	* Different colors for different categories specified in config file.
+	* Different categories may be sorted by 'id' and 'title'.
 
 Fri Dec  5 18:55:45 CET 2008: scorch
 	* IDs works correctly when greater than 9.
-	* 'mode' and 'status' called catagory now.
+	* 'mode' and 'status' called category now.
 
-Sat Dec  6 18:43:51 CET 2008: scorch
-	* Fixed a bug that made sorting by ID sort: "1, 10, 11, 2, 3, 31, ..."
-	* Fixed a bug that made sorting only work when printing one catagory.
-	* Made sorting optional.
-	* Added a check for catagory description. Now required.
-	* The ID field is always atleast four characters of wide now. 
-	* --change, -c now works. Moves a title from one catagory to another.
-	* Added 'catagories.defcat-change' for default catagory to change a
-	  title to when using --change, -c.
 
