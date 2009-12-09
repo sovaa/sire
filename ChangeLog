@@ -1,3 +1,7 @@
+Wed Dec  9 19:52:21 CET 2009: scorch
+	* rewrote info() to like... a bilionth of the previous size
+	* also, (--info, -i) now includes scores
+
 Mon Nov 30 04:26:34 CET 2009: scorch
 	* removal of flatfile item showed score instead och title in verbose
 	  output (introduction of score)

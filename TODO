@@ -9,6 +9,10 @@
 * installer
 * man page
 
+0.2.2:
+* some shitz
+--- * show score in info (--info, -i)
+
 0.2.1:
 --- * add config section 'move' and put all move-<cat>.<cat> there
 --- * fix broken search
