@@ -66,7 +66,8 @@ ERROR = {
     'emptycat':    "Empty category '%s'.",
     'dbcat':       "Database and/or config file not found. Should be in '~/.sire/'.",
     'defadd':      "defval.add not specified in config file, and no category specified on command line when adding.",
-    'flatfile':    "This operation is not supported when using flatfile instead of a database."
+    'flatfile':    "This operation is not supported when using flatfile instead of a database.",
+    'invalid_id':  "'%s' is not a valid ID.",
 }    
 
 class miscfunctions:
@@ -408,6 +409,16 @@ def approxsearch(db, conf, edits, sstr):
 
 
 
+def is_valid_id(id):
+    sid = None
+    try:
+        sid = str(int(id))
+    except:
+        return False
+
+    if sid != id:
+        return False
+    return True
 
 
 def parseconfig(conffile):
@@ -1149,53 +1160,47 @@ def flatfile(config):
 # Prints formated table with info about items with specified IDs.
 def info(db, conf, ids):
     if flatfile(conf):
-        error(ERROR["flatfile"])
-        
+        error(ERROR["flatfile"]) 
 
     # [id, score, title, category, date_added, time_in_category]
     strlens = [1,1,1,1,1,1]
     items = []
     ids = ids.split(',')
 
-    alldbs = getcatsql(db)
-
     # uuuh, why? Just do "select * from item where id = id" wtf
     for id in ids:
-        found = False
-        for d in alldbs:
-            cursor = dbexec(db, "SELECT DISTINCT id FROM item WHERE cat = '"+d+"'", None, False)
-            catids = [int(x[0]) for x in cursor.fetchall()]
+        if not is_valid_id(id):
+            error(ERROR['invalid_id'] % c(id))
+            continue
 
-            if int(id) in catids:
-                found = True
-                result = None
-
-                cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+id+"'", None, False)
-                result = cursor.fetchall()[0]
-
-                # add the columns needed for printing and rearange them a bit
-                d = time.gmtime(int(result[2]))
-                date_added = '%d-%d-%d, %d:%d:%d' % (d[0], d[1], d[2], d[3], d[4], d[5])
-                result = [
-                    result[0],
-                    result[4],
-                    format_text_out(result[1]),
-                    result[3],
-                    date_added,
-                    timepassed(result[2])
-                ]
-                items.append(result)
-
-                # calculate each columns max width
-                for i in range(len(strlens)):
-                    if len(str(result[i])) > strlens[i]:
-                        strlens[i] = len(str(result[i]))
-
-                # we're done here; can't 
-                break;
-        
-        if not found:
+        cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+id+"'", None, False)
+        result = cursor.fetchall()
+        if not result:
             error(ERROR["item"] % c(id))
+            continue 
+
+        result = result[0]
+        # add the columns needed for printing and rearange them a bit
+        d = time.gmtime(int(result[2]))
+        date_added = '%d-%d-%d, %d:%d:%d' % (d[0], d[1], d[2], d[3], d[4], d[5])
+        result = [
+            result[0],
+            result[4],
+            format_text_out(result[1]),
+            result[3],
+            date_added,
+            timepassed(result[2])
+        ]
+        items.append(result)
+
+        # calculate each columns max width
+        for i in range(len(strlens)):
+            if len(str(result[i])) > strlens[i]:
+                strlens[i] = len(str(result[i]))
+
+    # found nothin'
+    if not items:
+        return
 
     # calculate spaces between column headers and print them
     width = 0
