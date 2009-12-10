@@ -28,7 +28,7 @@ ALTDB = PATH + "/altdb/"
 ALTRC = PATH + "/altrc/"
 
 NAME = "sire"
-VERSION = "0.2.1"
+VERSION = "0.2.2"
 AUTHORS = "Oscar Eriksson"
 EMAIL = "(oscar.eriks@gmail.com)"
 LICENCE = '''License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
@@ -66,8 +66,9 @@ ERROR = {
     'emptycat':    "Empty category '%s'.",
     'dbcat':       "Database and/or config file not found. Should be in '~/.sire/'.",
     'defadd':      "defval.add not specified in config file, and no category specified on command line when adding.",
-    'flatfile':    "This operation is not supported when using flatfile instead of a database.",
-    'invalid_id':  "'%s' is not a valid ID.",
+    'bad_id':      "'%s' is not a valid ID.",
+    'bad_range':   "'%s' is not a valid range.",
+    'dupe_cat':    "Category with ID '%s' already exists with the title '%s'.",
 }    
 
 class miscfunctions:
@@ -94,6 +95,7 @@ class miscfunctions:
     def get(self, what):
         return self.info[what]
 
+misc = miscfunctions()
 
 
 
@@ -173,88 +175,49 @@ def parseargs():
     
     return parser.parse_args()[0]
 
-
-misc = miscfunctions()
-
-
 # Prints version number, licence and authors with email.
 def version():
     print NAME,VERSION,'\n',LICENCE,'\n\nWritten by: ',AUTHORS,EMAIL
     return
 
-
-
-def itemexistsincat(db, config, cat, item):
-    if flatfile(config):
-        for val in db[cat].values():
-            if val[1] == item:
-                return True
-        return False
-
-    # SQL
-    cursor = dbexec(db, "SELECT * FROM item WHERE title = '" + item + \
-        "' AND cat = '" + cat + "'", None, False)
+# check if item exists in a category
+def title_exists(db, cat, item):
+    cursor = dbexec(db, "SELECT * FROM item WHERE title = '%s' AND cat = '%s'" % (item, cat), None, False)
     if len(cursor.fetchall()) > 0:
         return True
     return False
-
 
 # Internal function to check for already existing items.
-def itemexistsid(db, config, id):
-    if flatfile(config):
-        for key in db.keys():
-            for val in db[key].keys():
-                if val == id:
-                    return True
-        return False
+def id_exists(db, id):
+    if not is_valid_id(id):
+        error(ERROR['bad_id'] % c(id))
+        sys.exit(1);
 
-    # else we're using sql
-    cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+id+"'", None, False)
+    cursor = dbexec(db, "SELECT * FROM item WHERE id = '%s'" % str(id), None, False)
     if len(cursor.fetchall()) > 0:
         return True
     return False
-
     
 # Internal function to check for already existing items.
-def get_title_from_id(db, config, id):
-    if flatfile(config):
-        for key in db.keys():
-            for val in db[key].keys():
-                if val == id:
-                    return True
-        return False
+def get_title_from_id(db, id):
+    if not is_valid_id(id):
+        error(ERROR['bad_id'] % c(id))
+        sys.exit(1);
 
-    # else we're using sql
-    cursor = dbexec(db, "SELECT * FROM item WHERE id = '%s'" % id, None, False)
+    cursor = dbexec(db, "SELECT title FROM item WHERE id = '%s'" % id, None, False)
     res = cursor.fetchall()
     if len(res) > 0:
-        return res[0][1]
+        return res[0][0]
     error(ERROR["item"] % c(id)) 
     sys.exit(1)
 
-
-
-
 def get_category_from_title(db, config, title):
-    if flatfile(config):
-        for d in db:
-            for b in db[d].values():
-                if title in b:
-                    return d
-
-        # We didn't find it.
-        error(ERROR["notitle"] % c(title))
-        sys.exit(1)
-
     cursor = dbexec(db, "SELECT cat FROM item WHERE title = '%s'" % format_text_in(title), None, False)
     res = cursor.fetchall()
     if len(res) > 0:
         return res[0][0]
     error(ERROR["notitle"] % c(title))
     sys.exit(1)
-
-
-
 
 '''
 # same thing, though if multiple items with the same title exists, from category may be
@@ -265,15 +228,6 @@ def get_category_from_id(db, config, id):
     
 # Get the category of a title with a certain ID.
 def get_category_from_id(db, config, id):
-    if flatfile(config):
-        for d in db:
-            if id in db[d].keys():
-                return d
-
-        # We didn't find it.
-        error(ERROR["nocat"] % c(id))
-        sys.exit(1)
-
     cursor = dbexec(db, "SELECT cat FROM item WHERE id = '%s'" % id, None, False)
     res = cursor.fetchall()
     if len(res) > 0:
@@ -281,27 +235,14 @@ def get_category_from_id(db, config, id):
     error(ERROR["item"] % c(id))
     sys.exit(1)
 
-
-
-
-
-
 # Internal function to check for already existing items.
-def itemexists(db, config, item):
-    if flatfile(config):
-        for key in db.keys():
-            for val in db[key].values():
-                if val[2] == item:
-                    return True
-        return False
-
-    # else we're using sql
-    cursor = dbexec(db, "SELECT * FROM item WHERE title = '"+item+"'", None, False)
+def itemexists(db, item):
+    cursor = dbexec(db, "SELECT * FROM item WHERE title = '%s'" % item, None, False)
     if len(cursor.fetchall()) > 0:
         return True
     return False
 
-
+# get the duplicate policy for a certain category
 def get_duplicate_policy(config, cat):
     if not cat is None and ("duplicates." + cat) in config.keys():
         return config["duplicates." + cat]
@@ -310,43 +251,33 @@ def get_duplicate_policy(config, cat):
         return config["defval.duplicates"]
     return None
 
-
-
+# replace occurances in text of dict items from dic
 def replace_all(text, dic):
     for i, j in dic.iteritems():
         text = text.replace(i, j)
-    
     return text
-
-
-
-
 
 # Do an approximate string search using the Apse package.
 def approxsearch(db, conf, edits, sstr):
     reslist = []
     reps = {'.':' ', '_':' ', '-':' '}
 
-    if edits is 0:
-        if "find.edits" in conf.keys():
-            edits = int(conf["find.edits"])
-        else:
-            edits = 0
+    if edits is 0 and "find.edits" in conf.keys():
+        edits = int(conf["find.edits"])
     
     if edits > 10:
         edits = 10
-
     elif edits < 0:
         edits = 0
 
-    if not flatfile(conf):
-        cursor = dbexec(db, "SELECT * FROM item", None, False)
-        db = cursor.fetchall()
+    cursor = dbexec(db, "SELECT * FROM item", None, False)
+    db = cursor.fetchall()
 
     for search in [sstr]:
         # allow at most 'edits' edits 
         ap = Apse.Approx(search.lower(), edit=edits)
 
+        # messy, I know
         for key in db: 
             val = key[1]
             id = key[0]
@@ -393,9 +324,7 @@ def approxsearch(db, conf, edits, sstr):
                     old_cat = res[3]
 
             # Make titles aligned.
-            spacer = ''
-            for i in range(5 - len(str(res[0]))):
-                spacer += ' '
+            spacer = ' '*(5 - len(str(res[0])))
 
             # Showing ID when listing is optional.
             if "general.showid" not in conf.keys() or not misc.get('id'):
@@ -403,16 +332,18 @@ def approxsearch(db, conf, edits, sstr):
             
             elif conf["general.showid"] == '1':
                 print "%s%s%s %s: %s" % (C['bold'], res[0], C['default'], spacer, format_text_out(res[1]))
-
     else:
         warning("No matches found!")
+    return
 
-
-
+# try to see if specified ID is a positive integer
 def is_valid_id(id):
     sid = None
     try:
-        sid = str(int(id))
+        iid = int(id)
+        sid = str(iid)
+        if iid < 0:
+            return false
     except:
         return False
 
@@ -420,8 +351,8 @@ def is_valid_id(id):
         return False
     return True
 
-
-def parseconfig(conffile):
+# parse a specified config file
+def parse_config(conffile):
     if not os.path.isfile(conffile):
         f = file(conffile, 'w')
         f.close()
@@ -438,34 +369,24 @@ def parseconfig(conffile):
             _config[name + "." + string.lower(opt)] = string.strip(cp.get(sec, opt))
     return _config
 
-
-
-
-
-# Print a category (status) description using bold and colors.
+# Print a category description using bold and colors.
 def printcategory(category, config):
     if ("categories." + category) not in config.keys():
         error(ERROR["catdesc"] % c(category))
         sys.exit(1)
 
-    if not ("colors." + category) in config.keys():
-        if not "colors.defcol" in config.keys():
-            color = ''
-
-        else:
-            color = C[config["colors.defcol"]]
-    else:
+    color = ''
+    if ("colors." + category) in config.keys():
         color = C[config["colors." + category]]
+
+    elif "colors.defcol" in config.keys():
+        color = C[config["colors.defcol"]]
 
     if misc.get('color'):
         print C["bold"], color, config["categories." + category], "('" + category + "')", C["default"]
     else:
         print "  " + config["categories." + category], "('" + category + "')"
-
     return
-
-
-
 
 # Read the database.
 # FIXME: I don't want to load a 500MB file each time I wan't to check what I can watch.
@@ -502,45 +423,29 @@ def parsedb(dbfile):
 # FIXME: O(n^4) complexity ffs
 def listdupes(db, conf, cat):
     dupeids = []
-
-    if flatfile(conf):
-        alldbs = db.keys()
-    else:
-        alldbs = getcatsql(db)
+    alldbs = get_all_categories(db)
 
     # If no category is specified, go through every category.
     if cat is None:
         for d in alldbs:
-            if flatfile(conf):
-                dkeys = db[d].keys()
-                dvals = db[d].values()
-            else:
-                cursor = dbexec(db, "SELECT * FROM item WHERE cat = '"+d+"'", None, False)
-                result = cursor.fetchall()
-                dkeys = [x[0] for x in result]
-                dvals = [x[1] for x in result]
+            cursor = dbexec(db, "SELECT * FROM item WHERE cat = '"+d+"'", None, False)
+            result = cursor.fetchall()
+            dkeys = [x[0] for x in result]
+            dvals = [x[1] for x in result]
 
             while dvals != []:
                 dval = dvals.pop()
                 dkey = dkeys.pop()
-                if flatfile(conf):
-                    dval = dval[1]
 
                 for dd in alldbs:
-                    if flatfile(conf):
-                        ddkeys = db[dd].keys()
-                        ddvals = db[dd].values()
-                    else:
-                        cursor = dbexec(db, "SELECT * FROM item WHERE cat = '"+dd+"'", None, False)
-                        result = cursor.fetchall()
-                        ddkeys = [x[0] for x in result]
-                        ddvals = [x[1] for x in result]
+                    cursor = dbexec(db, "SELECT * FROM item WHERE cat = '"+dd+"'", None, False)
+                    result = cursor.fetchall()
+                    ddkeys = [x[0] for x in result]
+                    ddvals = [x[1] for x in result]
     
                     while ddvals != []:
                         ddval = ddvals.pop()
                         ddkey = ddkeys.pop()
-                        if flatfile(conf):
-                            ddval = ddval[1]
 
                         if dkey == ddkey:
                             continue
@@ -560,14 +465,10 @@ def listdupes(db, conf, cat):
 
     # Use specified category.
     else:
-        if flatfile(conf):
-            dkeys = db[cat].keys()
-            dvals = db[cat].values()
-        else:
-            cursor = dbexec(db, "SELECT * FROM item WHERE cat = '"+cat+"'", None, False)
-            result = cursor.fetchall()
-            dkeys = [x[0] for x in result]
-            dvals = [x[1] for x in result]
+        cursor = dbexec(db, "SELECT * FROM item WHERE cat = '"+cat+"'", None, False)
+        result = cursor.fetchall()
+        dkeys = [x[0] for x in result]
+        dvals = [x[1] for x in result]
 
         while dvals != []:
             dval = dvals.pop()
@@ -579,13 +480,11 @@ def listdupes(db, conf, cat):
                     print dkey, dval, "(%s)" % cat
                     print k, v, "(%s)" % cat
                     print
-
     if dupeids == []:
         warning("No duplicates found.")
+    return
 
-
-
-
+# prints names of the shown columns when listing if chosen to in config
 def print_table_head(pid, pscore, cw):
     LABEL = ['TITLE', 'ID', 'SCORE']
     output = ''
@@ -609,9 +508,6 @@ def print_table_head(pid, pscore, cw):
     print '-'*(sum([len(x) for x in LABEL]) + 2)
     return
 
-
-
-
 # List either all categories or only the default category.
 def list(db, config, category, destination = None):
     pnewline = misc.get('newline')
@@ -624,22 +520,12 @@ def list(db, config, category, destination = None):
     colw_score = 7
     colw_id = 5
 
-    if flatfile(config):
-        # Nothing in database.
-        if db == {}:
-            error(ERROR["emptydb"])
-            sys.exit()
-
-        alldbs = db.keys()
-
-    else:
-        alldbs = getcatsql(db)
+    alldbs = get_all_categories(db)
 
     # Only print the category titles.
     if category == "titles":
         for title in alldbs:
             printcategory(title, config)
-
         sys.exit()
 
     output = ''
@@ -647,7 +533,6 @@ def list(db, config, category, destination = None):
     if pnewline:
         newline = "\n"
 
-    # FIXME sql
     # List duplicates.
     if category == "dupe":
         listdupes(db, config, destination)
@@ -661,17 +546,11 @@ def list(db, config, category, destination = None):
         if newline is '\n':
             colw_title = 0
             for category in dbs:
-                if flatfile(config):
-                    dbsel = db[category].items()
-                    for id, val in dbsel:
-                        if len(val[2]) > colw_title:
-                            colw_title = len(val[2])
-                else:
-                    cursor = dbexec(db, "SELECT * FROM item WHERE cat = '"+category+"'", None, False)
-                    dbsel = cursor.fetchall()
-                    for id, title, date, cat, score in dbsel:
-                        if len(title) > colw_title:
-                            colw_title = len(title)
+                cursor = dbexec(db, "SELECT * FROM item WHERE cat = '"+category+"'", None, False)
+                dbsel = cursor.fetchall()
+                for id, title, date, cat, score in dbsel:
+                    if len(title) > colw_title:
+                        colw_title = len(title)
             print_table_head(pid, pscore, [colw_title, colw_id, colw_score])
 
     for category in dbs:
@@ -679,12 +558,8 @@ def list(db, config, category, destination = None):
             error(ERROR["emptycat"] % c(category))
             sys.exit(1)
 
-        if flatfile(config):
-            dbsel = db[category].items()
-
-        else:
-            cursor = dbexec(db, "SELECT * FROM item WHERE cat = '"+category+"'", None, False)
-            dbsel = cursor.fetchall()
+        cursor = dbexec(db, "SELECT * FROM item WHERE cat = '"+category+"'", None, False)
+        dbsel = cursor.fetchall()
 
         # Sorting is optional.
         if misc.get('sort') is not None:
@@ -698,79 +573,42 @@ def list(db, config, category, destination = None):
 
         if sortmethod is not None:
             # Sort by specified method.
-            if flatfile(config):
-                if sortmethod == "title":
-                    dbsel = sorted(db[category].items(), key=lambda (k,v): (v[2].lower(),k))
-                elif sortmethod == "id":
-                    dbsel = sorted(db[category].items(), key=lambda (k,v): (int(k),v[2]))
-                elif sortmethod == "time":
-                    dbsel = sorted(db[category].items(), key=lambda (k,v): (v[0], k))
-                elif sortmethod == "score":
-                    dbsel = sorted(db[category].items(), key=lambda (k,v): (v[1], k))
-                else:
-                    dbsel = dbsel
-
+            if sortmethod == "title":
+                dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (v.lower(),int(k),a,b,c))
+            elif sortmethod == "id":
+                dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (int(k),v,a,b,c))
+            elif sortmethod == "time":
+                dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (a,int(k),v,b,c))
+            elif sortmethod == "score":
+                dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (int(c),int(k),v,a,b))
             else:
-                if sortmethod == "title":
-                    dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (v.lower(),int(k),a,b,c))
-                elif sortmethod == "id":
-                    dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (int(k),v,a,b,c))
-                elif sortmethod == "time":
-                    dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (a,int(k),v,b,c))
-                elif sortmethod == "score":
-                    dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (int(c),int(k),v,a,b))
-                else:
-                    dbsel = dbsel
+                dbsel = dbsel
 
         if pcat: 
             printcategory(category, config)
 
-        if flatfile(config):
-            for id, value in dbsel:
-                title = value[2]
-                score = value[1]
-                # Make titles aligned.
-                sid = sscore = ' '
-                for i in range(4 - len(id)):
-                    sid += ' '
-                for i in range(7 - len(score)):
-                    sscore += ' '
+        for id, title, date, cat, score in dbsel:
+            if not is_young(date):
+                continue
 
-                l1 = ['1', None, False]
-                l2 = ['0', False]
-                gscore = configvalue(config, "general.showscore")
+            # Make titles aligned.
+            id = str(id)
+            sid = sscore = ''
+            for i in range(colw_id - len(id)):
+                sid += ' '
+            for i in range(colw_score - len(str(score))):
+                sscore += ' '
 
-                # Showing ID when listing is optional.
-                if configvalue(config, "general.showid") is '1' and pid:
-                    output += bold(id, pcolor) + sid + ': '
-                if gscore in l1 and pscore in l1 or gscore in l2 and pscore in l2:
-                    output += bold(score, pcolor) + sscore + ': '
-                output += format_text_out(title) + newline
- 
-        # SQL
-        else:
-            for id, title, date, cat, score in dbsel:
-                if not limitedtimeago(date):
-                    continue
+            l1 = ['1', None, False]
+            l2 = ['0', False]
+            gscore = config_value(config, "general.showscore")
 
-                # Make titles aligned.
-                id = str(id)
-                sid = sscore = ''
-                for i in range(colw_id - len(id)):
-                    sid += ' '
-                for i in range(colw_score - len(str(score))):
-                    sscore += ' '
-
-                l1 = ['1', None, False]
-                l2 = ['0', False]
-                gscore = configvalue(config, "general.showscore")
-
-                # Showing ID when listing is optional.
-                if configvalue(config, "general.showid") is '1' and pid:
-                    output += bold(id, pcolor) + sid + ': '
-                if gscore in l1 and pscore in l1 or gscore in l2 and pscore in l2:
-                    output += bold(str(score), pcolor) + sscore + ': '
-                output += format_text_out(title) + newline
+            # Showing ID when listing is optional.
+            if config_value(config, "general.showid") is '1' and pid:
+                output += bold(id, pcolor) + sid + ': '
+            if gscore in l1 and pscore in l1 or gscore in l2 and pscore in l2:
+                output += bold(str(score), pcolor) + sscore + ': '
+            output += format_text_out(title) + newline
 
     output = output.strip()
     if len(output) is 0:
@@ -783,50 +621,45 @@ def list(db, config, category, destination = None):
     print output
     return
 
-
+# sql friendly format
 def format_text_in(title):
     import re
     title = re.sub('"', "&#34;", title)
     title = re.sub("'", "&#39;", title)
     return title
 
-
+# sql unfriendly format
 def format_text_out(title):
     import re
     title = re.sub("&#34;", '"', title)
     title = re.sub("&#39;", "'", title)
     return title
 
-
-def configvalue(config, ident):
+# if 'ident' is specified in the config, return its value
+def config_value(config, ident):
     if ident in config.keys():
         return config[ident]
     return None
 
-
-
-
+# return bold version of the text if not color is False
 def bold(string, color = True):
     if color:
         return C['bold'] + string + C['default']
     return string
 
-
-
-def limitedtimeago(date):
+# return True if the difference between specified unix time and now is 
+# less than 'daysago' specified in config. False otherwise
+def is_young(date):
     if misc.get('daysago') is not 0:
-        tdate = int(time.time())
-        if tdate - int(date) > misc.get('daysago')*24*3600:
+        if int(time.time()) - int(date) > misc.get('daysago')*24*3600:
             return False
     return True
 
-
-
-
+# figure out if an item-to-be-added is allowed in that category according to the category's policy
 def enforce_duplicate_policy(db, config, name, category):
     dup = get_duplicate_policy(config, category)
 
-    if dup == "0" and itemexists(db, config, name):
+    if dup == '0' and itemexists(db, config, name):
         existing_category = get_category_from_title(db, config, name)
         existing_duplicate = get_duplicate_policy(config, existing_category)
         if existing_duplicate not in ["1", "2"]:
@@ -834,14 +667,12 @@ def enforce_duplicate_policy(db, config, name, category):
             if not misc.get('force'):
                 sys.exit(1)
 
-    if dup == "1" and itemexistsincat(db, config, category, name):
+    # need to check both
+    if dup == '1' and title_exists(db, category, name):
         warning("Item already exists in category '%s'. Use (--force, -f) to add anyway." % c(category))
         if not misc.get('force'):
             sys.exit(1)
-
-
-
-
+    return
 
 # Add an item to the database.
 def add(db, config, name, category, dbfile):
@@ -849,47 +680,34 @@ def add(db, config, name, category, dbfile):
         error(ERROR["nocat"] % c(category))
         sys.exit(1)
 
+    # make it sql friendly
     name = format_text_in(name)
+
+    # check if it's allowed to be added to this category according to it's policy
     enforce_duplicate_policy(db, config, name, category)
 
     # time.time() returns float, so throw away the ms, then convert to string for writing
     date = str(int(time.time()))
 
-    if flatfile(config):
-        l = []
-        for k, v in db.iteritems():
-            l += v.keys()
+    cursor = dbexec(db, "SELECT * FROM curid", None, False)
+    id = cursor.fetchall()[0][0] + 1;
 
-        id = '0'
-        for i in l:
-            if int(i) > int(id):
-                id = str(i)
-
-        id = str(int(id) + 1)
-        if not category in db.keys():
-            db[category] = {id: (date, 0, name)}
-        else:
-            db[category][id] = (date, 0, name)
-        savedb(db, config, dbfile)
-
-    else:
-        cursor = dbexec(db, "SELECT * FROM curid", None, False)
-        id = cursor.fetchall()[0][0] + 1;
-        dbexec(db, "UPDATE curid SET id = id + 1", None, True)
-        dbexec(db, "INSERT INTO item (id, title, date, cat) VALUES (%s, %s, %s, %s)", (id, name, date, category), True)
+    # FIXME: AUTO_INCREMENT
+    dbexec(db, "UPDATE curid SET id = id + 1", None, True)
+    dbexec(db, "INSERT INTO item (id, title, date, cat) VALUES (%s, %s, %s, %s)", (id, name, date, category), True)
 
     note("Saved '%s' with ID '%s' to category '%s'" % (c(name), c(str(id)), c(category)))
     return
 
-
+# see if we're only pretending to be mad
 def pretend():
     return misc.get('pretend')
 
-
-
 # Execute SQL statement.
 def dbexec(db, template, values, volatile):
-    # volatile is all UPDATE, INSERT etc.
+    # volatile is all UPDATE, INSERT etc., so if pretending, 
+    # don't actually do anything, just look busy so the boss
+    # won't thing something's up
     if volatile and pretend():
         return
 
@@ -900,66 +718,48 @@ def dbexec(db, template, values, volatile):
         cursor.execute(template, values)
     return cursor
 
-
-
-
-
 # Delete an item from the database.
 def delete(db, conf, ids, dbfile):
-    if flatfile(conf):
-        alldbs = db.keys()
-    else:
-        alldbs = getcatsql(db)
-
+    alldbs = get_all_categories(db)
     ids = str(ids).split(',')
 
     for id in ids:
-        deleted = False
-        if flatfile(conf):
-            for d in alldbs:
-                if db[d].has_key(id):
-                    title = db[d][id][2]
-                    date = db[d][id][0]
-                    del db[d][id]
-                    deleted = True
-                    break
+        # malicious user that needs to be destroyed
+        if not is_valid_id(id):
+            error(ERROR['bad_id'] % id)
+            continue
 
-        # SQL
-        else:
-            cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+id+"'", None, False)
-            result = cursor.fetchall()
-            if len(result) == 0:
-                error(ERROR["item"] % c(id))
-                continue
+        cursor = dbexec(db, "SELECT id FROM item WHERE id = '%s'" % id, None, False)
 
-            d = result[0][3]
-            title = result[0][1]
-            date = result[0][2]
-            dbexec(db, "DELETE FROM item WHERE id = '"+id+"'", None, True)
-            deleted = True
-
-        if deleted:
-            date = timepassed(date)
-
-            note("Deleted item with ID '%s' and title '%s' from category '%s'." % (c(id), c(format_text_out(title)), c(d)))
-            note("It was in that category for %s years, %s days, %s hours, %s minutes and %s seconds." % 
-                (date[0], date[1], date[2], date[3], date[4]))
-
-        else:
+        # doesn't exist
+        if len(cursor.fetchall()) == 0:
             error(ERROR["item"] % c(id))
+            continue
 
-    savedb(db, conf, dbfile)
+        d = result[0][3]
+        title = result[0][1]
+        date = result[0][2]
+        dbexec(db, "DELETE FROM item WHERE id = '"+id+"'", None, True)
+        date = time_passed(date)
 
+        note("Deleted item with ID '%s' and title '%s' from category '%s'." % (c(id), c(format_text_out(title)), c(d)))
+        note("It was in that category for %s years, %s days, %s hours, %s minutes and %s seconds." % 
+            (date[0], date[1], date[2], date[3], date[4]))
+    return
 
-def getcatsql(db):
+# get all category names
+def get_all_categories(db):
     cursor = dbexec(db, "SELECT DISTINCT cat FROM item", None, False)
     return [x[0] for x in cursor.fetchall()]
 
-def timepassed(date):
+# calculate how long time has passed since a certain date and return
+# a tuple on the form (years, days, hours, minutes, seconds)
+def time_passed(date):
     date = int(time.time()- int(date))
     return (str(date/60/60/24/365), str(date/60/60/24 % 365), \
         str(date/60/60 % 24), str(date/60 % 60), str(date % 60))
 
+# print a notice (like 'Deleted item blabla' or 'Added item blabla')
 def note(text):
     text = format_text_out(text)
     if misc.get('verbose') is not 0:
@@ -969,6 +769,7 @@ def note(text):
             print "Note: " + text
     return
 
+# print and error (like 'No item with ID blalba')
 def error(text):
     text = format_text_out(text)
     if misc.get('verbose') is not 0:
@@ -978,6 +779,7 @@ def error(text):
             print "Error: " + text
     return
 
+# print a warning. Sort of the same as error, duh, should remove one of them
 def warning(text):
     text = format_text_out(text)
     if misc.get('verbose') is not 0:
@@ -986,24 +788,6 @@ def warning(text):
         else:
             print "Warning: " + text
     return
-
-
-# Save a changed database.
-def savedb(db, conf, dbfile):
-    if not flatfile(conf) or pretend():
-        return
-    
-    f = open(dbfile, 'w')
-    for d in db:
-        for id in db[d]:
-            tmp = db[d][id]
-            f.write("%s:%s:%s:%s:%s\n" % (d, id, tmp[0], tmp[1], tmp[2]))
-    f.close()
-    return
-
-
-
-
 
 # Change the value of an item with ID 'id'.
 def change(db, conf, id, val_orig, dbfile):
@@ -1014,70 +798,51 @@ def change(db, conf, id, val_orig, dbfile):
 
     rids = []
     for k, i in enumerate(id):
-        if not itemexistsid(db, conf, i):
+        if not id_exists(db, conf, i):
             warning(ERROR["item"] % i)
             rids = [k] + rids
     for j in rids:
         del id[j]
 
-    if res != []:
+    # so the user had some %(blabal) in their query, *sigh*, do some search and replace
+    if res:
         for i in id:
             val = val_orig
             for v in res:
                 # This means "if %(#), do this".
                 if not cmp(v, '#'):
-                    if flatfile(conf):
-                        rval = db[get_category_from_id(db, conf, i)][i][1]
-                    else:
-                        cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+i+"'", None, False)
-                        result = cursor.fetchall()
-                        rval = result[0][1]
+                    cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+i+"'", None, False)
+                    result = cursor.fetchall()
+                    rval = result[0][1]
 
                 else:
-                    if flatfile(conf):
-                        rval = db[get_category_from_id(db, conf, v)][v][1]
-                    else:
-                        cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+v+"'", None, False)
-                        result = cursor.fetchall()
-                        rval = result[0][1]
+                    cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+v+"'", None, False)
+                    result = cursor.fetchall()
+                    rval = result[0][1]
 
                 p = re.compile('\%\(' + v + '\)')
                 val = p.sub(rval, val)
 
+            # sql friendly is your friend
             val = format_text_in(val)
-            if flatfile(conf):
-                cat = get_category_from_id(db, conf, i)
-                old = db[cat][i][1]
-                date = db[cat][i][0]
-                db[cat][i] = (date, val)
-            else:
-                cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+i+"'", None, False)
-                result = cursor.fetchall()
-                old = result[0][1]
-                dbexec(db, "UPDATE item SET title = '"+val+"' WHERE id = '"+i+"'", None, True)
+            cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+i+"'", None, False)
+            result = cursor.fetchall()
+            old = result[0][1]
+            dbexec(db, "UPDATE item SET title = '"+val+"' WHERE id = '"+i+"'", None, True)
 
             note("Changed item with ID '%s' from '%s' to '%s'." % (c(i), c(format_text_out(old)), c(format_text_out(val))))
 
+    # fuck yeah, no search and replace needed, just do the thing
     else:
         for i in id:
             val = format_text_in(val_orig)
-            if flatfile(conf):
-                cat = get_category_from_id(db, config, i)
-                old = db[cat][i][1]
-                date = db[cat][i][0]
-                db[cat][i] = (date, val)
-            else:
-                cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+i+"'", None, False)
-                result = cursor.fetchall()
-                old = result[0][1]
-                dbexec(db, "UPDATE item SET title = '"+val+"' WHERE id = '"+i+"'", None, True)
+            cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+i+"'", None, False)
+            result = cursor.fetchall()
+            old = result[0][1]
+            dbexec(db, "UPDATE item SET title = '"+val+"' WHERE id = '"+i+"'", None, True)
 
             note("Changed item with ID '%s' from '%s' to '%s'." % (c(i), c(format_text_out(old)), c(format_text_out(val))))
-
-    savedb(db, conf, dbfile)
-
-
-
+    return
 
 # Move an item with ID 'id' to a new category.
 def move(db, conf, id, newcat, dbfile):
@@ -1086,121 +851,110 @@ def move(db, conf, id, newcat, dbfile):
         sys.exit(1)
 
     newdate = str(int(time.time()))
-    enforce_duplicate_policy(db, conf, get_title_from_id(db, conf, id), newcat)
+    enforce_duplicate_policy(db, conf, get_title_from_id(db, id), newcat)
 
-    if flatfile(conf):
-        found = False
-        for d in db:
-            if id in db[d].keys():
-                found = True
-                break;
+    cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+id+"'", None, False)
+    result = cursor.fetchall()
+    if len(result) == 0:
+        error(ERROR["item"] % c(id))
+        sys.exit(1)
 
-        if not found:
-            error(ERROR["item"] % c(id))
-            sys.exit(1)
-
-        date = timepassed(db[d][id][0])
-        newdate = str(int(time.time()))
-        title = db[d][id][1]
-
-        if db.has_key(newcat):
-            db[newcat][id] = (newdate, title)
-        else:
-            db[newcat] = dict([(id, (newdate, title))])
-
-        del db[d][id]
-
-    # SQL
-    else:
-        cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+id+"'", None, False)
-        result = cursor.fetchall()
-        if len(result) == 0:
-            error(ERROR["item"] % c(id))
-            sys.exit(1)
-
-        dbexec(db, "UPDATE item SET cat = '"+newcat+"' WHERE id = '"+id+"'", None, True)
-        dbexec(db, "UPDATE item SET date = '"+newdate+"' WHERE id = '"+id+"'", None, True)
-        date = timepassed(result[0][2])
-        title = result[0][1]
-        d = result[0][3]
+    dbexec(db, "UPDATE item SET cat = '%s' WHERE id = '%s'" % (newcat, str(id)), None, True)
+    dbexec(db, "UPDATE item SET date = '%s' WHERE id = '%s'" % (newcat, str(id)), None, True)
+    date = time_passed(result[0][2])
+    title = result[0][1]
+    d = result[0][3]
 
     note("Moved item with ID '%s' and title '%s' from category '%s' to '%s'." % (c(id), c(format_text_out(title)), c(d), c(newcat)))
     note("It was in that category for %s years, %s days, %s hours, %s minutes and %s seconds." % 
         (date[0], date[1], date[2], date[3], date[4]))
+    return
 
-    savedb(db, conf, dbfile)
-
-
+# colorize some random text if told to in the config
 def c(text):
     if misc.get('color'):
         return C['g'] + text + C['d']
     return text
 
+# internal function used by info() a heck of a lot to get info from -one- ID
+def get_info_from_id(db, id, rangewarn = None):
+    cursor = dbexec(db, "SELECT * FROM item WHERE id = '%s'" % str(id), None, False)
+    result = cursor.fetchall()
+    if not result:
+        if rangewarn:
+            error(ERROR["item"] % c(id))
+        return
 
-
-
-
-
-
-
-# Detirmine if we're using flatfile or mysql as database.
-def flatfile(config):
-    if ("database.type" not in config.keys()):
-        return True
-
-    if config["database.type"] == "mysql":
-        return False
-
-    return True
-
-
-
-
+    result = result[0]
+    # add the columns needed for printing and rearange them a bit for fun and profit
+    d = time.gmtime(int(result[2]))
+    date_added = '%d-%d-%d, %d:%d:%d' % (d[0], d[1], d[2], d[3], d[4], d[5])
+    result = [
+        result[0], # id
+        result[4], # score
+        format_text_out(result[1]), # title
+        result[3], # category
+        date_added, # added
+        time_passed(result[2]) # time in category
+    ]
+    return result
 
 # Prints formated table with info about items with specified IDs.
 def info(db, conf, ids):
-    if flatfile(conf):
-        error(ERROR["flatfile"]) 
-
     # [id, score, title, category, date_added, time_in_category]
     strlens = [1,1,1,1,1,1]
     items = []
+    skip = []
     ids = ids.split(',')
 
-    # uuuh, why? Just do "select * from item where id = id" wtf
+    # should we warn if ID not found in range?
+    rangewarn = config_value(conf, "general.inforangewarn")
+    if rangewarn is '1':
+        rangewarn = True
+    else: rangewarn = False
+
+    # go through all specified IDs
     for id in ids:
-        if not is_valid_id(id):
-            error(ERROR['invalid_id'] % c(id))
+        # skip using '%'
+        if id[0] is '%':
+            if not is_valid_id(id[1:]):
+                error(ERROR['bad_id'] % c(id))
+                continue
+            skip.append(id[1:])
             continue
 
-        cursor = dbexec(db, "SELECT * FROM item WHERE id = '"+id+"'", None, False)
-        result = cursor.fetchall()
-        if not result:
-            error(ERROR["item"] % c(id))
-            continue 
+        # hack to get the for loop to go once if no range was used
+        idrange = [id, id]
 
-        result = result[0]
-        # add the columns needed for printing and rearange them a bit
-        d = time.gmtime(int(result[2]))
-        date_added = '%d-%d-%d, %d:%d:%d' % (d[0], d[1], d[2], d[3], d[4], d[5])
-        result = [
-            result[0],
-            result[4],
-            format_text_out(result[1]),
-            result[3],
-            date_added,
-            timepassed(result[2])
-        ]
-        items.append(result)
+        inrange = False
+        if '-' in id:
+            idrange = id.split('-')
+            inrange = True
 
-        # calculate each columns max width
-        for i in range(len(strlens)):
-            if len(str(result[i])) > strlens[i]:
-                strlens[i] = len(str(result[i]))
+        if not is_valid_id(idrange[0]) or not is_valid_id(idrange[1]):
+            error(ERROR['bad_range'] % c(id))
+            continue
 
-    # found nothin'
+        # wont happen if idrange is None
+        for i in range(int(idrange[0]), int(idrange[1]) + 1):
+            result = get_info_from_id(db, str(i), (rangewarn and inrange) or not inrange)
+            # like bad_id or somethin'
+            if not result:
+                continue
+
+            items.append(result)
+
+    # found nothin', error/warning/whatever already shown if so
     if not items:
         return
+
+    # calculate each columns max width if not in skip list
+    for item in items:
+        if str(item[0]) in skip:
+            continue
+        for i in range(len(strlens)):
+            if len(str(item[i])) > strlens[i]:
+                strlens[i] = len(str(item[i]))
 
     # calculate spaces between column headers and print them
     width = 0
@@ -1213,30 +967,17 @@ def info(db, conf, ids):
 
     # calculate spaces betweel column items and print them
     for item in items:
+        if str(item[0]) in skip:
+            continue
         for i in range(len(strlens) - 1):
             spaces = max(strlens[i] - len(str(item[i])), len(labels[i]) - len(str(item[i]))) + 1
             sys.stdout.write('%s%s| ' % (item[i], ' '*spaces))
-
-        tp = item[5]
-        print '%sy %sd %sh %sm %ss' % (tp[0], tp[1], tp[2], tp[3], tp[4])
-        
+        print '%sy %sd %sh %sm %ss' % (item[5][0], item[5][1], item[5][2], item[5][3], item[5][4])
     print '-'*width
     return
 
-
-
-
-
-def sortdict(adict):
-    items = adict.items()
-    items.sort()
-    return [(key, value) for key, value in items]
-
-
-
-
-
-def saveconfig(config, configfile):
+# only really used when creating a new category as of writing. Saves the config, duh
+def save_config(config, configfile):
     if pretend():
         return
 
@@ -1248,21 +989,17 @@ def saveconfig(config, configfile):
             cf.write(string.lower(opt) + ": " + string.strip(config.get(sec, opt)) + "\n")
 
     cf.close()
-
     return
 
-
-
-
-
-def newcategory(configfile, title, id):
+# create a new category from command line
+def create_new_category(configfile, title, id):
     sections = ["categories", "defval", "general"]
 
     config = ConfigParser.ConfigParser()
     config.read(configfile)
 
     if config.has_option("categories", id):
-        error("Category with ID '%s' already exists with the title '%s'." % (c(id), c(title)))
+        error(ERROR['dupe_cat'] % (c(id), c(title)))
         sys.exit(1)
 
     for section in sections:
@@ -1270,6 +1007,7 @@ def newcategory(configfile, title, id):
             config.add_section(section)
 
     config.set("categories", id, title)
+    # some standard options to be set for the new category
     confs = [
         ("move", id, id), 
         ("defval", "list", id), 
@@ -1280,73 +1018,40 @@ def newcategory(configfile, title, id):
         ("general", "showid", 1)
     ]
 
+    # add if not already in it
     for conf in confs:
         if not config.has_option(conf[0], conf[1]):
             config.set(conf[0], conf[1], conf[2])
 
-    saveconfig(config, configfile)
-
+    save_config(config, configfile)
     note("Added category '%s' with title '%s'." % (c(id), c(title)))
-
     return
 
-
-
-
-
-def setscore(db, dbfile, config, id, score):
-    if flatfile(config):
-        tmp = db[get_category_from_id(db, config, id)][id]
-        db[get_category_from_id(db, config, id)][id] = (tmp[0], score, tmp[2])
-        savedb(db, config, dbfile)
-    else:
-        dbexec(db, "UPDATE item SET score = '"+score+"' WHERE id = '"+id+"'", None, True)
-
-    title = get_title_from_id(db, config, id)
+# assign a score to and item
+def set_score(db, dbfile, config, id, score):
+    dbexec(db, "UPDATE item SET score = '"+score+"' WHERE id = '"+id+"'", None, True)
+    title = get_title_from_id(db, id)
     note("Assigned score '%s' to item with ID '%s' and value '%s'." % (c(score), c(id), c(format_text_out(title))))
-
     return
-
-
-
-
-
-def changedb(config, dbfile):
-    config["database.type"] = "flatfile"
-    db = parsedb(dbfile)
-
-    return db
-
-
-
-
 
 # Handle command line arguments.
 def main():
     # Check if config and database files exists and are read- and writeable.
-    if not os.path.exists(DB) or not os.path.exists(CONFIG):
+    if not os.path.exists(CONFIG):
         error(ERROR["dbcat"])
         sys.exit(1)
 
     # Read the config file.
-    config = parseconfig(CONFIG)
+    config = parse_config(CONFIG)
 
-    if flatfile(config):
-        # Always backup the database before ding anything. Will overwrite older backup.
-        shutil.copy(DB, PATH + "/.siredb.backup")
-        # First read the database from the file.
-        db = parsedb(DB)
-
-    else:
-        db = MySQLdb.connect(
-            config["database.host"], 
-            config["database.user"], 
-            config["database.pass"], 
-            config["database.name"])
+    db = MySQLdb.connect(
+        config["database.host"], 
+        config["database.user"], 
+        config["database.pass"], 
+        config["database.name"])
 
     configfile = CONFIG
     dbfile = DB
-
     opts = parseargs()
 
     if opts.pretend is True:
@@ -1358,7 +1063,7 @@ def main():
 
     if opts.profile is not None:
         profile = opts.profile
-        config = parseconfig(ALTRC + profile)
+        config = parse_config(ALTRC + profile)
         configfile = ALTRC + profile
         dbfile = ALTDB + profile
         db = changedb(config, dbfile)
@@ -1404,7 +1109,7 @@ def main():
         if opts.dest is None:
             error(ERROR["destcat"])
             sys.exit(1)
-        newcategory(configfile, opts.addcat, opts.dest)
+        create_new_category(configfile, opts.addcat, opts.dest)
         return
 
     if opts.find is not None:
@@ -1468,26 +1173,21 @@ def main():
             error(ERROR["destscore"])
             sys.exit(1)
 
-        if not itemexistsid(db, config, opts.dest):
+        if not id_exists(db, opts.dest):
             error(ERROR["item"] % c(opts.dest))
             sys.exit(1)
 
-        setscore(db, dbfile, config, opts.dest, opts.score)
+        set_score(db, dbfile, config, opts.dest, opts.score)
         return
-        
         
     # Nothing else was done, so list a category.
     category = None
     if opts.list is not None:
         category = opts.list
     list(db, config, category, opts.dest)
-    
     return
 
-
-
-
-# Call main().
+# call your mama and tell her how great you are!
 if __name__ == "__main__":
     main()
     sys.exit()

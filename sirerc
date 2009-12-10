@@ -27,10 +27,15 @@
 ; general.showscore:
 ; If not specified or set to '0', no score will be shown when listing a
 ; category. If set to '1' it will show like in the above illustration.
+;
+; general.inforangewarn:
+; If set to 0, will not show warnings when using ranges with (--info, -i) and
+; an ID in the range is not found. Default is 1.
 [general]
 showid: 1
 showtable: 1
 showscore: 0
+inforangewarn: 0
 
 ; defval.list 
 ; specifies the default caagory when listing ('sire -l' will list the specified

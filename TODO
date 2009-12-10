@@ -10,8 +10,10 @@
 * man page
 
 0.2.2:
-* some shitz
-* ability to specify category instead of id when using (--info, -i)
+--- * who wants flatfile anyway, am I right?
+--- * ID ranges; e.g. 'sire -i 200-300'
+--- * ability to specify in config to not show warnings when using ranges with (--info, -i) if ID not found
+--- * ability to specify IDs -not- so show when using (--info, -i) using %<ID>
 --- * show score in info (--info, -i)
 
 0.2.1:

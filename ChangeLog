@@ -1,3 +1,29 @@
+Thu Dec 10 02:27:04 CET 2009: scorch
+	* flatfile no longer supported; got too ugly. Will implement it again
+	  later if I find a cool way of doing it
+	* renamed itemexistsincat() to title_exists()
+	* renamed itemexistsid() to id_exists()
+	* renamed configvalue() to config_value()
+	* renamed limitedtimeago() to is_young()
+	* renamed getcatsql() to get_all_categories()
+	* renamed timepassed() to time_passed()
+	* renamed saveconfig() to save_config()
+	* renamed newcategory() to create_new_category()
+	* renamed setscore() to set_score()
+	* added function get_info_from_id() which contains the actually
+	  info-getting previously used in info(). Simplifies the use of ranges
+	* get_title_from_id no longer needs config parameter
+	* id_exists no longer needs config parameter
+	* went through almost all functions and optimized some, reducing about
+	  350 lines of code
+	* added support for range when showing info (--info, -i); e.g. 
+	  'sire -i 20-90,4,826-9000,3-9'
+	* added support for general.inforangewarn; if set to 1, will warn if
+	  an ID in a range is not found when using range for (--info, -i).
+	  Default is 0
+	* added support for skipping items with certain IDs when using
+	  (--info, -i) using %<ID>; e.g. 'sire -i %501,500-600,%550,%553'
+
 Wed Dec  9 19:52:21 CET 2009: scorch
 	* rewrote info() to like... a bilionth of the previous size
 	* also, (--info, -i) now includes scores
