@@ -23,6 +23,7 @@ Thu Dec 10 02:27:04 CET 2009: scorch
 	  Default is 0
 	* added support for skipping items with certain IDs when using
 	  (--info, -i) using %<ID>; e.g. 'sire -i %501,500-600,%550,%553'
+	* approxsearch library only imported when needed now
 
 Wed Dec  9 19:52:21 CET 2009: scorch
 	* rewrote info() to like... a bilionth of the previous size

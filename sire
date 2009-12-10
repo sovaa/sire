@@ -15,7 +15,6 @@
 
 
 import string, sys, getopt, os, ConfigParser, time, shutil
-import Apse # for approximate searching
 import MySQLdb # database
 from optparse import OptionParser
 from optparse import OptionGroup
@@ -259,6 +258,7 @@ def replace_all(text, dic):
 
 # Do an approximate string search using the Apse package.
 def approxsearch(db, conf, edits, sstr):
+    import Apse # for approximate searching
     reslist = []
     reps = {'.':' ', '_':' ', '-':' '}
 
