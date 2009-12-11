@@ -65,7 +65,9 @@ ERROR = {
     'emptycat':    "Empty category '%s'.",
     'dbcat':       "Database and/or config file not found. Should be in '~/.sire/'.",
     'defadd':      "defval.add not specified in config file, and no category specified on command line when adding.",
+    'deflist':     "defval.list is not specified in config file, and no category specified on command line when listing.",
     'bad_id':      "'%s' is not a valid ID.",
+    'bad_cat':     "Bad chars in destination ('%s'). ' and \ are allowed.",
     'bad_range':   "'%s' is not a valid range.",
     'dupe_cat':    "Category with ID '%s' already exists with the title '%s'.",
 }    
@@ -235,7 +237,7 @@ def get_category_from_id(db, config, id):
     sys.exit(1)
 
 # Internal function to check for already existing items.
-def itemexists(db, item):
+def item_exists(db, item):
     cursor = dbexec(db, "SELECT * FROM item WHERE title = '%s'" % item, None, False)
     if len(cursor.fetchall()) > 0:
         return True
@@ -320,7 +322,7 @@ def approxsearch(db, conf, edits, sstr):
                 if old_cat is None or res[3] != old_cat:
                     print
                     if misc.get('category'):
-                        printcategory(res[3], conf)
+                        print_category(res[3], conf)
                     old_cat = res[3]
 
             # Make titles aligned.
@@ -335,6 +337,14 @@ def approxsearch(db, conf, edits, sstr):
     else:
         warning("No matches found!")
     return
+
+# try to see if specified category is valid
+def is_valid_category(cat):
+    notallowed = "\\'"
+    for char in cat:
+        if char in notallowed:
+            return False
+    return True
 
 # try to see if specified ID is a positive integer
 def is_valid_id(id):
@@ -370,7 +380,7 @@ def parse_config(conffile):
     return _config
 
 # Print a category description using bold and colors.
-def printcategory(category, config):
+def print_category(category, config):
     if ("categories." + category) not in config.keys():
         error(ERROR["catdesc"] % c(category))
         sys.exit(1)
@@ -388,100 +398,39 @@ def printcategory(category, config):
         print "  " + config["categories." + category], "('" + category + "')"
     return
 
-# Read the database.
-# FIXME: I don't want to load a 500MB file each time I wan't to check what I can watch.
-def parsedb(dbfile):
-    db = {}
-    if not os.path.isfile(dbfile):
-        f = file(dbfile, 'w')
-        f.close()
-        error(ERROR["nodb"])
-        sys.exit(1)
+# List duplicates, all or in a specific categories.
+def list_duplicates(db, conf, cats):
+    # if comma separated, split and prepare the extra sql values
+    sqlcat = ''
+    if cats:
+        sqlcat = 'WHERE '
+        cats = cats.split(',')
+    else: cats = []
 
-    if os.path.getsize(dbfile) == 0:
-        warning("Your database is empty.")
-        return db
+    # set up the WHERE sql thingie
+    for cat in cats:
+        # no dropping tables here kiddo
+        if not is_valid_category(cat):
+            error(ERROR['bad_cat'] % cat)
+            continue
+        sqlcat += "cat = '%s' OR " % cat
+    # probably don't want the last ' OR ' anyway
+    if cats: sqlcat = sqlcat[:-4]
 
-    f = file(dbfile, 'r')
-    for line in f.readlines():
-        parts = line.split(":", 4)
-        parts[4] = parts[4][:-1]
-
-        if not db.has_key(parts[0]):
-            db[parts[0]] = {parts[1] : (parts[2], parts[3], parts[4])}
-        else:
-            db[parts[0]][parts[1]] = (parts[2], parts[3], parts[4])
-
-    f.close()
-    return db
-
-
-
-
-
-# List duplicates, all or in a specific category.
-# FIXME: O(n^4) complexity ffs
-def listdupes(db, conf, cat):
-    dupeids = []
-    alldbs = get_all_categories(db)
-
-    # If no category is specified, go through every category.
-    if cat is None:
-        for d in alldbs:
-            cursor = dbexec(db, "SELECT * FROM item WHERE cat = '"+d+"'", None, False)
-            result = cursor.fetchall()
-            dkeys = [x[0] for x in result]
-            dvals = [x[1] for x in result]
-
-            while dvals != []:
-                dval = dvals.pop()
-                dkey = dkeys.pop()
-
-                for dd in alldbs:
-                    cursor = dbexec(db, "SELECT * FROM item WHERE cat = '"+dd+"'", None, False)
-                    result = cursor.fetchall()
-                    ddkeys = [x[0] for x in result]
-                    ddvals = [x[1] for x in result]
+    # fire up the main laseeer
+    results = dbexec(db, "SELECT id, title, COUNT(title) FROM item %s GROUP BY title HAVING (COUNT(title) > 1)" % sqlcat, None, False).fetchall()
+    if not results:
+        note("No duplicates found in category '%s'." % c(cat))
+        return
     
-                    while ddvals != []:
-                        ddval = ddvals.pop()
-                        ddkey = ddkeys.pop()
-
-                        if dkey == ddkey:
-                            continue
-    
-                        if dval == ddval:
-                            if dkey not in dupeids:
-                                dupeids.append(dkey)
-                                print dkey, dval, "(%s)" % d
-
-                            if ddkey not in dupeids:
-                                dupeids.append(ddkey)
-                                print ddkey, ddval, "(%s)" % dd
-
-    elif not cat in alldbs:
-        error(ERROR["nocat"] % c(cat))
-        sys.exit(1)
-
-    # Use specified category.
-    else:
-        cursor = dbexec(db, "SELECT * FROM item WHERE cat = '"+cat+"'", None, False)
-        result = cursor.fetchall()
-        dkeys = [x[0] for x in result]
-        dvals = [x[1] for x in result]
-
-        while dvals != []:
-            dval = dvals.pop()
-            dkey = dkeys.pop()
-
-            for (k, v) in zip(dkeys, dvals):
-                if dval == v:
-                    dupeids.append(dval)
-                    print dkey, dval, "(%s)" % cat
-                    print k, v, "(%s)" % cat
-                    print
-    if dupeids == []:
-        warning("No duplicates found.")
+    # each item returned by that last query up there only returns one of the duplicate items,
+    # so get all matching titles and print their IDs and categories
+    for item in results:
+        note("%s entries found for '%s':" % (c(str(item[2])), c(item[1])))
+        dupeids = dbexec(db, "SELECT id, cat FROM item WHERE title = '%s'" % item[1], None, False).fetchall()
+        for id in dupeids:
+            print "  ID '%s' in category '%s'" % (c(str(id[0])), c(id[1]))
+        print
     return
 
 # prints names of the shown columns when listing if chosen to in config
@@ -525,51 +474,49 @@ def list(db, config, category, destination = None):
     # Only print the category titles.
     if category == "titles":
         for title in alldbs:
-            printcategory(title, config)
-        sys.exit()
+            print_category(title, config)
+        return
 
-    output = ''
+    # might print on only one line if so choose
     newline = ", "
     if pnewline:
         newline = "\n"
 
     # List duplicates.
     if category == "dupe":
-        listdupes(db, config, destination)
+        list_duplicates(db, config, destination)
         return
 
+    dbs = [category]
     if category == "all":  dbs = alldbs
-    elif category == None: dbs = [config["defval.list"]]
-    else:                  dbs = [category]
+    elif category == None: dbs = [config_value(config, "defval.list")]
 
-    if 'general.showtable' in config.keys() and config['general.showtable'] is '1':
-        if newline is '\n':
-            colw_title = 0
-            for category in dbs:
-                cursor = dbexec(db, "SELECT * FROM item WHERE cat = '"+category+"'", None, False)
-                dbsel = cursor.fetchall()
-                for id, title, date, cat, score in dbsel:
-                    if len(title) > colw_title:
-                        colw_title = len(title)
-            print_table_head(pid, pscore, [colw_title, colw_id, colw_score])
+    if not dbs[0]:
+        error(ERROR['deflist'])
+        return
 
+    # only care if it's set and not 0, and if newline is not... newline, dont show the table
+    if config_value(config, "general.showtable") and newline is '\n':
+        colw_title = 0
+        for category in dbs:
+            dbsel = dbexec(db, "SELECT * FROM item WHERE cat = '%s'" % category, None, False).fetchall()
+            for id, title, date, cat, score in dbsel:
+                if len(title) > colw_title:
+                    colw_title = len(title)
+        print_table_head(pid, pscore, [colw_title, colw_id, colw_score])
+
+    output = ''
     for category in dbs:
         if category not in alldbs:
             error(ERROR["emptycat"] % c(category))
-            sys.exit(1)
+            return
 
-        cursor = dbexec(db, "SELECT * FROM item WHERE cat = '"+category+"'", None, False)
-        dbsel = cursor.fetchall()
+        dbsel = dbexec(db, "SELECT * FROM item WHERE cat = '"+category+"'", None, False).fetchall()
 
         # Sorting is optional.
-        if misc.get('sort') is not None:
-            sortmethod = misc.get('sort')
-        elif ("sort." + category) in config.keys():
-            sortmethod = config["sort." + category]
-        elif "defval.sort" in config.keys():
-            sortmethod = config["defval.sort"]
-        else:
-            sortmethod = None
+        sortmethod = misc.get('sort')
+        if not sortmethod: sortmethod = config_value(config, "sort." + category)
+        if not sortmethod: sortmethod = config_value(config, "defval.sort")
 
         if sortmethod is not None:
             # Sort by specified method.
@@ -581,31 +528,34 @@ def list(db, config, category, destination = None):
                 dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (a,int(k),v,b,c))
             elif sortmethod == "score":
                 dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (int(c),int(k),v,a,b))
-            else:
-                dbsel = dbsel
 
-        if pcat: 
-            printcategory(category, config)
-
+        if pcat: print_category(category, config)
         for id, title, date, cat, score in dbsel:
             if not is_young(date):
                 continue
 
             # Make titles aligned.
             id = str(id)
-            sid = sscore = ''
-            for i in range(colw_id - len(id)):
-                sid += ' '
-            for i in range(colw_score - len(str(score))):
-                sscore += ' '
+            sid = ' '*(colw_id - len(id))
+            sscore = ' '*(colw_score - len(str(score)))
 
+            # uuh, you probably don't want to touch the next few lines; it -works-, okay?
             l1 = ['1', None, False]
             l2 = ['0', False]
             gscore = config_value(config, "general.showscore")
-
-            # Showing ID when listing is optional.
             if config_value(config, "general.showid") is '1' and pid:
                 output += bold(id, pcolor) + sid + ': '
+
+            # break it down: gscore is the CONFIG value that tells us to PRINT scores or not,
+            # pscore is the COMMAND LINE value that tells us to NOT PRINT (double negative)
+            #
+            # the command line have higher priority than the config
+            # remember: 'command' here is double negative, so NO is YES, ignorance is bliss, war is..., sorry
+            # config + command = 
+            #   NO   +    NO   = YES
+            #   NO   +    YES  = NO
+            #   YES  +    NO   = YES (not necessary, since config already sais 'print ahead, dude'
+            #   YES  +    YES  = NO
             if gscore in l1 and pscore in l1 or gscore in l2 and pscore in l2:
                 output += bold(str(score), pcolor) + sscore + ': '
             output += format_text_out(title) + newline
@@ -659,7 +609,7 @@ def is_young(date):
 def enforce_duplicate_policy(db, config, name, category):
     dup = get_duplicate_policy(config, category)
 
-    if dup == '0' and itemexists(db, config, name):
+    if dup == '0' and item_exists(db, config, name):
         existing_category = get_category_from_title(db, config, name)
         existing_duplicate = get_duplicate_policy(config, existing_category)
         if existing_duplicate not in ["1", "2"]:
@@ -798,7 +748,7 @@ def change(db, conf, id, val_orig, dbfile):
 
     rids = []
     for k, i in enumerate(id):
-        if not id_exists(db, conf, i):
+        if not id_exists(db, i):
             warning(ERROR["item"] % i)
             rids = [k] + rids
     for j in rids:

@@ -1,3 +1,13 @@
+Fri Dec 11 03:14:39 CET 2009: scorch
+	* fixed listdupes(); using grouping in SQL now to determine duplicates
+	* renamed listdupes() to list_duplicates()
+	* renamed itemexists() to item_exists()
+	* renamed printcategory() to print_category()
+	* list_dupes() can now take comma separated values for categories
+	* removed parsedb(); not used anyway now that flatfile is not
+	  supported anymore
+	* optimized list() some
+
 Thu Dec 10 02:27:04 CET 2009: scorch
 	* flatfile no longer supported; got too ugly. Will implement it again
 	  later if I find a cool way of doing it

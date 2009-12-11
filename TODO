@@ -1,6 +1,5 @@
 1.0.0:
 * dunno
-* make listdupes faster. current complexity is O(n^4)!11
 * Clean up the code.
 
 0.3.0:
@@ -8,6 +7,10 @@
 * put functions in classes
 * installer
 * man page
+
+0.2.3:
+* moooore
+--- * speed up list_duplicates(); let SQL handle it
 
 0.2.2:
 --- * who wants flatfile anyway, am I right?
