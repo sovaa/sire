@@ -32,6 +32,13 @@ sire
 # only list all category titles
 sire -l titles
 
+# list duplicates in all categories
+sire -l dupe
+
+# list duplicates in category '1', '2', 'life goals' and 'gk'
+sire -l dupe -D 1,2,"life goals",3,gk
+sire --list dupe --destination 1,2,"life goals",3,gk
+
 # delete item with ID '39'
 sire --delete 39
 sire -d 39
@@ -91,7 +98,7 @@ sire -pd 34,45,32,504
 sire --profile dave --add "some value" --destination dcat
 sire -p dave -a "some value" -d dcat
 
-# use profile 'dave' to list it's default category
+# use profile 'dave' to list its default category
 sire -p dave
 
 # add a new category to your config file
@@ -103,7 +110,12 @@ sire -A "a new category title" -D newcat
 sire --profile dave --add-category "a new category title" --destination newcat
 sire -p dave -A "a new category title" -D newcat
 
+# print formated table showing some information about items with ID '1', '230' and '20'
+sire --info 1,230,20
+sire -i 1,230,20
 
+# print formated tables showing some information about items with ID 334 and all with IDs from 200 to 300, except for ID 3, 4 and 103
+sire --info %103,334,200-300,%3,%4
 
 
 
