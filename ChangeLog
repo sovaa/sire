@@ -1,3 +1,8 @@
+Mon Dec 14 18:14:47 CET 2009: scorch
+	* move() was still sending config to item_exists(), fixed now
+	* move() now sends correct value for date_added (was sending ID
+	  before)
+
 Fri Dec 11 03:14:39 CET 2009: scorch
 	* fixed listdupes(); using grouping in SQL now to determine duplicates
 	* renamed listdupes() to list_duplicates()

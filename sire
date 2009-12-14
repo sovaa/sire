@@ -609,7 +609,7 @@ def is_young(date):
 def enforce_duplicate_policy(db, config, name, category):
     dup = get_duplicate_policy(config, category)
 
-    if dup == '0' and item_exists(db, config, name):
+    if dup == '0' and item_exists(db, name):
         existing_category = get_category_from_title(db, config, name)
         existing_duplicate = get_duplicate_policy(config, existing_category)
         if existing_duplicate not in ["1", "2"]:
@@ -810,7 +810,7 @@ def move(db, conf, id, newcat, dbfile):
         sys.exit(1)
 
     dbexec(db, "UPDATE item SET cat = '%s' WHERE id = '%s'" % (newcat, str(id)), None, True)
-    dbexec(db, "UPDATE item SET date = '%s' WHERE id = '%s'" % (newcat, str(id)), None, True)
+    dbexec(db, "UPDATE item SET date = '%s' WHERE id = '%s'" % (newdate, str(id)), None, True)
     date = time_passed(result[0][2])
     title = result[0][1]
     d = result[0][3]
