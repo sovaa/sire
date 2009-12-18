@@ -488,7 +488,7 @@ def list(db, config, category, dests = None):
 
     dbs = [category]
     if category == '%':  dbs = alldbs
-    elif ',' in category: dbs = category.split(',')
+    elif category and ',' in category: dbs = category.split(',')
     elif category == None: dbs = [config_value(config, "defval.list")]
 
     if not dbs[0]:
