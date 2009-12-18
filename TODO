@@ -10,6 +10,10 @@
 
 0.2.3:
 * moooore
+* ability to use asterix to specify 'all' when using (--info, -i)
+* change 'all' to '*' as argument for (--list, -l) when listing all categories
+* ability to show all info in categories using (--destination, -D) and asterix for IDs. E.g.: 'sire -i % -D 3,4'
+* ability to specify categories to show results from when using (--info, -i). E.g.: 'sire -i 100-200 -D 3,gk,2'
 --- * speed up list_duplicates(); let SQL handle it
 
 0.2.2:

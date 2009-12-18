@@ -1,6 +1,13 @@
+Fri Dec 18 10:48:12 CET 2009: scorch
+	* when listing more than one category, category titles are now printed
+	  only before the items which are in it, instead of listing all titles
+	  at the top (which was a bug)
+
 Fri Dec 18 07:34:05 CET 2009: scorch
 	* deleting (--delete, -d) now works find, probably bug introduces
 	  while quick optimizing and removal of flatfile support
+	* ability to specify categories to show results from when using
+	  (--info, -i). E.g.; 'sire -i 100-200 -D 3,gk,2'
 
 Mon Dec 14 18:14:47 CET 2009: scorch
 	* move() was still sending config to item_exists(), fixed now
