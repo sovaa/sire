@@ -2,6 +2,9 @@ Fri Dec 18 10:48:12 CET 2009: scorch
 	* when listing more than one category, category titles are now printed
 	  only before the items which are in it, instead of listing all titles
 	  at the top (which was a bug)
+	* '%' now used instead of 'all' to list all categories; 'sire -l %'
+	* renamed print_category() to format_category_out(), and now returns
+	  formated string instead of printing it
 
 Fri Dec 18 07:34:05 CET 2009: scorch
 	* deleting (--delete, -d) now works find, probably bug introduces

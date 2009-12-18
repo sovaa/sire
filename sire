@@ -380,7 +380,7 @@ def parse_config(conffile):
     return _config
 
 # Print a category description using bold and colors.
-def print_category(category, config):
+def format_category_out(category, config):
     if ("categories." + category) not in config.keys():
         error(ERROR["catdesc"] % c(category))
         sys.exit(1)
@@ -393,10 +393,8 @@ def print_category(category, config):
         color = C[config["colors.defcol"]]
 
     if misc.get('color'):
-        print C["bold"], color, config["categories." + category], "('" + category + "')", C["default"]
-    else:
-        print "  " + config["categories." + category], "('" + category + "')"
-    return
+        return "  %s%s%s ('%s')%s\n" %(C["bold"], color, config["categories." + category], category, C["default"])
+    return "  %s ('%s')\n" % (config["categories." + category],  category)
 
 # List duplicates, all or in a specific categories.
 def list_duplicates(db, conf, cats):
@@ -463,15 +461,8 @@ def list(db, config, category, dests = None):
     pcat = misc.get('category')
     pid = misc.get('id')
 
-    dests_hide = []
-    dests_show = []
     if dests:
         dests = dests.split(',')
-        for dest in dests:
-            if dest[0] == '%':
-                dests_hide.append(dest[1:])
-            else:
-                dests_show.append(dest)
 
     # column width
     colw_score = 7
@@ -492,11 +483,12 @@ def list(db, config, category, dests = None):
 
     # List duplicates.
     if category == "dupe":
-        list_duplicates(db, config, dests_show)
+        list_duplicates(db, config, dests)
         return
 
     dbs = [category]
     if category == '%':  dbs = alldbs
+    elif ',' in category: dbs = category.split(',')
     elif category == None: dbs = [config_value(config, "defval.list")]
 
     if not dbs[0]:
@@ -518,8 +510,6 @@ def list(db, config, category, dests = None):
         if category not in alldbs:
             error(ERROR["emptycat"] % c(category))
             return
-        if (dests_show and cat not in dests_show) or (dests_hide and cat in dests_hide):
-            continue
 
         dbsel = dbexec(db, "SELECT * FROM item WHERE cat = '"+category+"'", None, False).fetchall()
 
