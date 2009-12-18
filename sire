@@ -679,20 +679,19 @@ def delete(db, conf, ids, dbfile):
             error(ERROR['bad_id'] % id)
             continue
 
-        cursor = dbexec(db, "SELECT id FROM item WHERE id = '%s'" % id, None, False)
+        result = dbexec(db, "SELECT * FROM item WHERE id = '%s'" % id, None, False).fetchall()
 
         # doesn't exist
-        if len(cursor.fetchall()) == 0:
+        if len(result) == 0:
             error(ERROR["item"] % c(id))
             continue
 
-        d = result[0][3]
-        title = result[0][1]
-        date = result[0][2]
+        cat = result[0][3]
+        title = format_text_out(result[0][1])
+        date = time_passed(result[0][2])
         dbexec(db, "DELETE FROM item WHERE id = '"+id+"'", None, True)
-        date = time_passed(date)
 
-        note("Deleted item with ID '%s' and title '%s' from category '%s'." % (c(id), c(format_text_out(title)), c(d)))
+        note("Deleted item with ID '%s' and title '%s' from category '%s'." % (c(id), c(title), c(cat)))
         note("It was in that category for %s years, %s days, %s hours, %s minutes and %s seconds." % 
             (date[0], date[1], date[2], date[3], date[4]))
     return

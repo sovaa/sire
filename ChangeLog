@@ -1,3 +1,7 @@
+Fri Dec 18 07:34:05 CET 2009: scorch
+	* deleting (--delete, -d) now works find, probably bug introduces
+	  while quick optimizing and removal of flatfile support
+
 Mon Dec 14 18:14:47 CET 2009: scorch
 	* move() was still sending config to item_exists(), fixed now
 	* move() now sends correct value for date_added (was sending ID
