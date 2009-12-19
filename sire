@@ -67,7 +67,7 @@ ERROR = {
     'defadd':      "defval.add not specified in config file, and no category specified on command line when adding.",
     'deflist':     "defval.list is not specified in config file, and no category specified on command line when listing.",
     'bad_id':      "'%s' is not a valid ID.",
-    'bad_cat':     "Bad chars in destination ('%s'). ' and \ are allowed.",
+    'bad_cat':     "Bad chars in destination ('%s'). ' and \ are not allowed.",
     'bad_range':   "'%s' is not a valid range.",
     'dupe_cat':    "Category with ID '%s' already exists with the title '%s'.",
 }    
@@ -340,6 +340,8 @@ def approxsearch(db, conf, edits, sstr):
 
 # try to see if specified category is valid
 def is_valid_category(cat):
+    if not cat:
+        return False
     notallowed = "\\'"
     for char in cat:
         if char in notallowed:
@@ -400,18 +402,17 @@ def format_category_out(category, config):
 def list_duplicates(db, conf, cats):
     # if comma separated, split and prepare the extra sql values
     sqlcat = ''
-    if cats:
+    if cats is not None:
         sqlcat = 'WHERE '
-
-    # set up the WHERE sql thingie
-    for cat in cats:
-        # no dropping tables here kiddo
-        if not is_valid_category(cat):
-            error(ERROR['bad_cat'] % cat)
-            continue
-        sqlcat += "cat = '%s' OR " % cat
-    # probably don't want the last ' OR ' anyway
-    if cats: sqlcat = sqlcat[:-4]
+        # set up the WHERE sql thingie
+        for cat in cats:
+            # no dropping tables here kiddo
+            if not is_valid_category(cat):
+                error(ERROR['bad_cat'] % cat)
+                continue
+            sqlcat += "cat = '%s' OR " % cat
+        # probably don't want the last ' OR ' anyway
+        sqlcat = sqlcat[:-4]
 
     # fire up the main laseeer
     results = dbexec(db, "SELECT id, title, COUNT(title) FROM item %s GROUP BY title HAVING (COUNT(title) > 1)" % sqlcat, None, False).fetchall()
@@ -422,11 +423,11 @@ def list_duplicates(db, conf, cats):
     # each item returned by that last query up there only returns one of the duplicate items,
     # so get all matching titles and print their IDs and categories
     for item in results:
+        print
         note("%s entries found for '%s':" % (c(str(item[2])), c(item[1])))
         dupeids = dbexec(db, "SELECT id, cat FROM item WHERE title = '%s'" % item[1], None, False).fetchall()
         for id in dupeids:
             print "  ID '%s' in category '%s'" % (c(str(id[0])), c(id[1]))
-        print
     return
 
 # prints names of the shown columns when listing if chosen to in config

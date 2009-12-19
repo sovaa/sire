@@ -1,3 +1,6 @@
+Sat Dec 19 14:44:18 CET 2009: scorch
+	* list_duplicates() bug fixed when not specifying category
+
 Fri Dec 18 10:48:12 CET 2009: scorch
 	* when listing more than one category, category titles are now printed
 	  only before the items which are in it, instead of listing all titles
