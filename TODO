@@ -10,7 +10,9 @@
 
 0.2.3:
 * moooore
-* word wrap long lines
+* word wrap long lines (formated nicely)
+--- * (--delete, -d) takes range (e.g. 200-230)
+--- * different output styles which can be chosen in config
 --- * change 'all' to '%' as argument for (--list, -l) when listing all categories
 --- * ability to specify categories to show results from when using (--info, -i). E.g.: 'sire -i 100-200 -D 3,gk,2'
 --- * speed up list_duplicates(); let SQL handle it

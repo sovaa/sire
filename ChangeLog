@@ -1,3 +1,8 @@
+Wed Jan 13 20:43:42 CET 2010: scorch
+	* (--delete, -d) takes range (e.g. 200-230)
+	* different output styles are now supported and can be chosen in the
+	  config file
+
 Sat Dec 19 14:44:18 CET 2009: scorch
 	* list_duplicates() bug fixed when not specifying category
 

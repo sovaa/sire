@@ -31,11 +31,38 @@
 ; general.inforangewarn:
 ; If set to 0, will not show warnings when using ranges with (--info, -i) and
 ; an ID in the range is not found. Default is 1.
+;
+; general.printstyle:
+; Select the style the output should have. These examples are for 
+; (--delete, -d), but it also effects (--move, -m) and (--add, -a).
+;
+; 0: Most verbose (default).
+;    Deleted
+;    ID       : 600
+;    Title    : <title here>
+;    Category : 1
+;    Age      : 0 years, 48 days, 22 hours, 28 minutes and 31 seconds.
+;
+; 1: A bit more compact.
+;    Deleted item with ID '600' and title '<title here>' from category '1'
+,    It was in that category for 0 years, 48 days, 22 hours, 28 minutes and 31 seconds.
+;
+; 2: Same info as 1, but more compact.
+;    Deleted '600' '<title here>' from '1'
+;    Age was 0 years, 48 days, 22 hours, 28 minutes and 31 seconds.
+;
+; 3: Same as 2, but without the age.
+;    Deleted '600' '<title here>' from '1'
+;
+; 4: Most compact.
+;    Deleted '<title here>'
+;
 [general]
 showid: 1
 showtable: 1
 showscore: 0
 inforangewarn: 0
+printstyle: 0
 
 ; defval.list 
 ; specifies the default caagory when listing ('sire -l' will list the specified
