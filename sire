@@ -25,6 +25,7 @@ CONFIG = PATH + "/sirerc"
 DB = PATH + "/siredb"
 ALTDB = PATH + "/altdb/"
 ALTRC = PATH + "/altrc/"
+DBBAK = PATH + "dbbak"
 
 NAME = "sire"
 VERSION = "0.2.2"
@@ -133,7 +134,8 @@ def parseargs():
         "--pretend":      "Only pretend to do the speicified things.",
         "--days-ago":     "Only list items added no longer ago than this.",
         "--sort":         "Specify what to sort by. Overrides setting in configuration.",
-        "--score":        "Assign a score to an item."
+        "--score":        "Assign a score to an item.",
+        "--restore-db":   "Restore the DB from the backup."
     }
     
     group = OptionGroup(parser, "Hide and/or change output options", "These options will hide or change different types of output.")
@@ -154,6 +156,7 @@ def parseargs():
     group.add_option("-m", "--move", type="int", dest = "move", help = htxt["--move"], metavar = "ID")
     group.add_option("-c", "--change", dest = "change", help = htxt["--change"], metavar = "ID1[,ID2[...]]")
     group.add_option("-A", "--add-category", dest = "addcat", help = htxt["--add-category"], metavar = "TITLE")
+    group.add_option("-b", "--restore-db", action = "store_true", dest = "restore", help = htxt["--restore-db"])
     parser.add_option_group(group)
     
     group = OptionGroup(parser, "Printing options", "These options only prints information and does not modify anything.")
@@ -688,10 +691,39 @@ def dbexec(db, template, values, volatile):
         cursor.execute(template, values)
     return cursor
 
+def db_backup(conf):
+    text_note("Backing up database...")
+    import commands
+
+    username = config_value(conf, 'database.user')
+    password = config_value(conf, 'database.pass')
+    dbname = config_value(conf, 'database.name')
+    commands.getstatusoutput('mysqldump -u %s -p%s %s | gzip -9 > %s.gz' % (username, password, dbname, DBBAK))
+    text_note("Backup complete!")
+
+    return
+
+def db_restore(conf):
+    text_note("Restoring database from backup...")
+    if not pretend():
+        import commands
+        username = config_value(conf, 'database.user')
+        password = config_value(conf, 'database.pass')
+        dbname = config_value(conf, 'database.name')
+        cmd = "gunzip -c %s.gz | mysql -u %s -p%s %s" % (DBBAK, username, password, dbname)
+        retval = commands.getstatusoutput(cmd)
+    text_note("Backup restored!")
+
+    return
+
+
 # Delete an item from the database.
 def delete(db, conf, ids, dbfile):
     alldbs = get_all_categories(db)
     ids = str(ids).split(',')
+
+    # backup db if something goes wrong
+    db_backup(conf)
 
     for id in ids:
         # works for non-range IDs too
@@ -1147,6 +1179,10 @@ def main():
             text_error(ERROR["destcat"])
             sys.exit(1)
         create_new_category(configfile, opts.addcat, opts.dest)
+        return
+
+    if opts.restore is not None:
+        db_restore(config)
         return
 
     if opts.find is not None:

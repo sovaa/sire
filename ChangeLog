@@ -1,3 +1,8 @@
+Sun Jan 17 22:51:28 CET 2010: scorch
+	* backup are now done before deleting anything
+	* added support for (--resore-db, -b), which restores the backed up
+	  database
+
 Wed Jan 13 20:43:42 CET 2010: scorch
 	* (--delete, -d) takes range (e.g. 200-230)
 	* different output styles are now supported and can be chosen in the

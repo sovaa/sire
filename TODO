@@ -11,6 +11,8 @@
 0.2.3:
 * moooore
 * word wrap long lines (formated nicely)
+--- * backup database before doing anything (on volatile operation)
+--- * ability to restore backed up database
 --- * (--delete, -d) takes range (e.g. 200-230)
 --- * different output styles which can be chosen in config
 --- * change 'all' to '%' as argument for (--list, -l) when listing all categories

@@ -171,3 +171,11 @@ life goals: magenta
 0: id
 2: time
 life goals: id
+
+[database]
+host: localhost
+name: siredb
+pass: passowrd
+type: mysql
+user: sire
+
