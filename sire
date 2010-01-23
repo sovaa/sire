@@ -829,7 +829,7 @@ def text_info(text):
     return
 
 # print and error (like 'No item with ID blalba')
-def text_text_error(text):
+def text_error(text):
     text = format_text_out(text)
     if misc.get('verbose') is not 0:
         if misc.get('color'):
