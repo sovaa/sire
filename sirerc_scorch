@@ -1,0 +1,86 @@
+
+[sort]
+life goals: id
+abbenay: id
+write: title
+0: id
+2: time
+
+[database]
+host: localhost
+name: siredb
+pass: Skosula52
+type: mysql
+user: sire
+
+[duplicates]
+1: 1
+2: 0
+0: 1
+abbenay: 1
+fm: 1
+
+[defval]
+sort: title
+color: green
+move: 2
+list: 1
+add: 1
+duplicates: 0
+
+[move]
+sjoslaget: sjoslaget
+abbenay: abbenay
+fm: fm
+6: 5
+4: 10
+1: 2
+2: 1
+0: 1
+q: q
+5: 6
+
+[general]
+printstyle: 2
+inforangewarn: 0
+showtable: 1
+showid: 1
+showscore: 0
+width: 60
+
+[colors]
+life goals: magenta
+abbenay: cyan
+1: yellow
+7: red
+0: red
+9: cyan
+fm: magenta
+
+[find]
+showcats: 1
+edits: 0
+
+[categories]
+wiki: wiki
+life goals: Things to do before I die
+buy: Things to buy
+abbenay: Things we need for Abbenay Hackspace
+time: How long has it been?
+sire todo: sire TODO
+learn: Things I want to learn
+gk: General Knowledge
+fm: Fovorite movies
+write: Things I want to write about
+sjoslaget: Vilka som ska på Sjöslaget
+1: Movies that I have, but not seen
+0: Movies that I'd wan't to see, but don't have
+3: School work to be done
+2: Movies that I've seen
+5: Books read
+4: Games I want to play
+6: Books I want to read
+9: Remeber
+8: Things to do before I turn 25
+q: Quotes
+10: Games I've played
