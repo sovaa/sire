@@ -1,15 +1,14 @@
 1.0.0:
 * dunno
-* Clean up the code.
 
 0.3.0:
+* clean up the code
 * divide different functionality in different files
 * put functions in classes
 * installer
 * man page
 
 0.2.3:
-* moooore
 * word wrap long lines (formated nicely)
 --- * backup database before doing anything (on volatile operation)
 --- * ability to restore backed up database
