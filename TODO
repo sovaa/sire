@@ -9,7 +9,6 @@
 * man page
 
 0.2.3:
-* word wrap long lines (formated nicely)
 --- * backup database before doing anything (on volatile operation)
 --- * ability to restore backed up database
 --- * (--delete, -d) takes range (e.g. 200-230)

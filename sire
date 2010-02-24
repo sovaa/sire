@@ -28,7 +28,7 @@ ALTRC = PATH + "/altrc/"
 DBBAK = PATH + "dbbak"
 
 NAME = "sire"
-VERSION = "0.2.2"
+VERSION = "0.2.3"
 AUTHORS = "Oscar Eriksson"
 EMAIL = "(oscar.eriks@gmail.com)"
 LICENCE = '''License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
