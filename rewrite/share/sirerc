@@ -1,0 +1,181 @@
+; Configuration Instructions
+; 
+; 1. Config is like this: 'key: value'.
+; 2. The key can be anything except ':'.
+; 3. You may have any number of catagories.
+; 4. The catagory key must be identical to the color and sort key (if you 
+;    specify any of these).
+; 5. A 'defval' value must be identical to the key that you wan't to have as 
+;    your default for that operation.
+; 6. Colors may be any of 'bold', 'red', 'green', 'yellow', 'blue', 'magenta'
+;    and 'cyan'.
+
+; general.showid
+; If not specified or set to '0', no ID numbers will be printed while listing
+; or searching.
+; 
+; general.showtable:
+; If not specified or set to '0', no table formation will be done on output to
+; show which columns is what. If set to '1', the output will look something
+; like the following:
+;
+; ID  | SCORE | TITLE
+; ------------------------------------------
+; 123 : 49    : Table example
+; 1   : 4000  : another example column
+;
+; general.showscore:
+; If not specified or set to '0', no score will be shown when listing a
+; category. If set to '1' it will show like in the above illustration.
+;
+; general.inforangewarn:
+; If set to 0, will not show warnings when using ranges with (--info, -i) and
+; an ID in the range is not found. Default is 1.
+;
+; general.printstyle:
+; Select the style the output should have. These examples are for 
+; (--delete, -d), but it also effects (--move, -m) and (--add, -a).
+;
+; 0: Most verbose (default).
+;    Deleted
+;    ID       : 600
+;    Title    : <title here>
+;    Category : 1
+;    Age      : 0 years, 48 days, 22 hours, 28 minutes and 31 seconds.
+;
+; 1: A bit more compact.
+;    Deleted item with ID '600' and title '<title here>' from category '1'
+,    It was in that category for 0 years, 48 days, 22 hours, 28 minutes and 31 seconds.
+;
+; 2: Same info as 1, but more compact.
+;    Deleted '600' '<title here>' from '1'
+;    Age was 0 years, 48 days, 22 hours, 28 minutes and 31 seconds.
+;
+; 3: Same as 2, but without the age.
+;    Deleted '600' '<title here>' from '1'
+;
+; 4: Most compact.
+;    Deleted '<title here>'
+;
+[general]
+showid: 1
+showtable: 1
+showscore: 0
+inforangewarn: 0
+printstyle: 0
+
+; defval.list 
+; specifies the default caagory when listing ('sire -l' will list the specified
+; default catagory).
+;
+; defval.add 
+; Specifies the default catagory when adding ('sire -a <title>' will add the
+; item '<title>' to the default catagory).
+;
+; defval.move
+; Specifies the default catagory when moving if no move.<catagory> is 
+; specified ('sire -m <id>' will move the item with ID '<id>' to this 
+; catagory).
+; 
+; defval.color 
+; Specifies the default color when printing catagory titles. If defval.color 
+; is not specified, no color will be used if none is specified to the spesific
+; catagory.
+;
+; defval.sort
+; Specifies what to sort after when no sorting is specified for a specific 
+; catagory. If no 'defval.sort' is specified, no sorting will be made.
+[defval]
+list: 1
+add: 1
+move: 2
+sort: title
+color: green
+
+; move.<catagory>
+; Specifies the default catagory to move to from the catagory <catagory>. 
+; If not specified for a certain catagory, 'defval.move' will be used.
+[move]
+0: 1
+1: 2
+learn: forget
+4: 10
+6: gk
+
+; find.showcats
+; If not specified or set to '0', results of a search will be sorted according
+; to the distace from the searched-for string. If set to '1', all results will
+; be sorted according to what catagory they're in, and the catagory name will
+; be printed before all results in that catagory.
+;
+; find.edits
+; The number of characters that are allowed to be edited when searching for an
+; item. Max is 10. Higher than 2 or 3 will produce a lot of results, especally
+; when the search string is short (less than five or six characters).
+[find]
+showcats: 1
+edits: 0
+
+; Per category duplicate policy when adding items.
+;
+; If set to 0, will not add to this category if it already exists in this or 
+; any other category if not forcing (--force, -F). The only exception is if
+; the duplicate is in a category that have a duplicate policy set to 1 or 2,
+; then it will be added anyway.
+;
+; If set to 1, will add to this category even if it already exists in -another-
+; category, but will not add if it exists in the current category.
+;
+; If set to 2, will add without complain to this category even if it exists in
+; another category and/or this one.
+[duplicates]
+1: 0
+2: 0
+0: 1
+abbenay: 1
+
+; Catagories are specified by 'key': 'description'
+[catagories]
+0: Movies that I'd wan't to see, but don't have
+1: Movies that I have, but not seen
+2: Movies that I've seen
+3: School work to be done
+4: Games I want to play
+10: Games I've played
+5: Books read
+6: Books I want to read
+8: Things to do before I turn 25
+life goals: Things to do before I die
+9: Remember
+wiki: wiki
+buy: Things to buy
+write: Things I want to write about
+learn: Things I want to learn
+gk: General Knowledge
+
+; The number indicates what catagory key the color is used for.
+; Colors may be: red, yellow, green, purple, blue, magenta, cyan.
+[colors]
+0: red
+1: yellow
+7: red
+life goals: magenta
+9: cyan
+
+; What to sort by. May be 'none', 'id', 'time' or 'title'. Key is for 
+; 'catagory key'. 'time' will sort for how long an item has been in the 
+; current catagory. When an item is moved from one catagory to another, the
+; time is reset to 0.
+; default is 'title'
+[sort]
+0: id
+2: time
+life goals: id
+
+[database]
+host: localhost
+name: siredb
+pass: passowrd
+type: mysql
+user: sire
+

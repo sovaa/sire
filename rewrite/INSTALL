@@ -1,0 +1,15 @@
+Requires:
+
+    * Python 2.6
+    * Latest Setuptools
+
+How to install (as root or with sudo):
+
+#> sudo python setup.py install
+
+then either
+#> sudo cp share/sirerc /etc/
+or
+#> sudo cp share/sirerc ~/.sire/
+
+Read share/sirerc for instructions on how to configure.
