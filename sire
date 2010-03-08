@@ -521,8 +521,8 @@ def list(db, config, category, dests = None):
     if config_value(config, "general.showtable") and newline is '\n':
         colw_title = 0
         for category in dbs:
-            dbsel = dbexec(db, "SELECT * FROM item WHERE cat = '%s'" % category, None, False).fetchall()
-            for id, title, date, cat, score in dbsel:
+            dbsel = dbexec(db, "SELECT id, score, title, cat, date, date FROM item WHERE cat = '%s'" % category, None, False).fetchall()
+            for id, score, title, cat, date, date in dbsel:
                 if len(title) > colw_title:
                     colw_title = len(title)
         print_table_head(pid, pscore, [colw_title, colw_id, colw_score])
@@ -533,27 +533,11 @@ def list(db, config, category, dests = None):
             text_error(ERROR["emptycat"] % c(category))
             return
 
-        dbsel = dbexec(db, "SELECT * FROM item WHERE cat = '"+category+"'", None, False).fetchall()
-
-        # Sorting is optional.
-        sortmethod = misc.get('sort')
-        if not sortmethod: sortmethod = config_value(config, "sort." + category)
-        if not sortmethod: sortmethod = config_value(config, "defval.sort")
-
-        if sortmethod is not None:
-            # Sort by specified method.
-            if sortmethod == "title":
-                dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (v.lower(),int(k),a,b,c))
-            elif sortmethod == "id":
-                dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (int(k),v,a,b,c))
-            elif sortmethod == "time":
-                dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (a,int(k),v,b,c))
-            elif sortmethod == "score":
-                dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (int(c),int(k),v,a,b))
+        items = sort(config, dbexec(db, "SELECT id, score, title, cat, date, date FROM item WHERE cat = '"+category+"'", None, False).fetchall())
 
         if pcat: 
             output += format_category_out(category, config)
-        for id, title, date, cat, score in dbsel:
+        for id, score, title, cat, date, date in items:
             if not is_young(date):
                 continue
 
@@ -1029,6 +1013,8 @@ def info(db, conf, ids, dests = None):
         sys.stdout.write(labels[i] + ' '*spaces + '| ')
     print '\n' + '-'*width
 
+    items = sort(conf, items)
+
     # calculate spaces between column items and print them
     for item in items:
         # this ID was specified with a '%' before it, so continue
@@ -1044,6 +1030,35 @@ def info(db, conf, ids, dests = None):
         print '%sy %sd %sh %sm %ss' % (item[5][0], item[5][1], item[5][2], item[5][3], item[5][4])
     print '-'*width
     return
+
+
+
+
+
+def sort(config, items):
+    # Sorting is optional.
+    sortmethod = misc.get('sort')
+    if not sortmethod: 
+        sortmethod = config_value(config, "defval.sort")
+    
+    if sortmethod is None:
+        return items
+    
+    # Sort by specified method.
+    if sortmethod == "title":
+        items = sorted(items, key=lambda (i,s,t,c,d,m): (t.lower(),int(i),c,d,m,s))
+    elif sortmethod == "id":
+        items = sorted(items, key=lambda (i,s,t,c,d,m): (int(i),t.lower(),c,d,m,s))
+    elif sortmethod == "time":
+        items = sorted(items, key=lambda (i,s,t,c,d,m): (m,t.lower(),int(i),s,c,d))
+    elif sortmethod == "score":
+        items = sorted(items, key=lambda (i,s,t,c,d,m): (int(s),t.lower(),int(i),c,d,m))
+    return items
+
+
+
+
+
 
 # only really used when creating a new category as of writing. Saves the config, duh
 def save_config(config, configfile):
@@ -1117,8 +1132,7 @@ def main():
         config["database.host"], 
         config["database.user"], 
         config["database.pass"], 
-        config["database.name"]
-    )
+        config["database.name"])
 
     configfile = CONFIG
     dbfile = DB

@@ -1,3 +1,7 @@
+Mon Mar  8 11:25:12 CET 2010: scorch
+	* sorting now available for (--info, -i)
+	* (--list, -l) now uses the same sort method as (--info, -i)
+
 Sun Jan 17 22:51:28 CET 2010: scorch
 	* backup are now done before deleting anything
 	* added support for (--resore-db, -b), which restores the backed up
