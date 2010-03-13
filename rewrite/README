@@ -116,9 +116,3 @@ sire -i 1,230,20
 
 # print formated tables showing some information about items with ID 334 and all with IDs from 200 to 300, except for ID 3, 4 and 103
 sire --info %103,334,200-300,%3,%4
-
-
-
-
-
-
