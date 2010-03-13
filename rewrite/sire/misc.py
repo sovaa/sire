@@ -6,7 +6,7 @@ class Misc:
     CONFIG = "/etc/sire/sire.conf"
     
     NAME = "sire"
-    VERSION = "0.2.3"
+    VERSION = "0.3.0"
     AUTHORS = "Oscar Eriksson"
     EMAIL = "(oscar.eriks@gmail.com)"
     LICENCE = '''License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>

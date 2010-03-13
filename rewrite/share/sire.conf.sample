@@ -196,3 +196,4 @@ write: title
 [database]
 type: sqlite
 location: /etc/sire/db.sqlite
+backup: /etc/sire/db.sqlite.backup

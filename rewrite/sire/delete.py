@@ -1,5 +1,8 @@
 
 from sire.dbman import dbexec, db_backup
+from sire.printer import *
+from sire.helpers import *
+from sire.misc import *
 
 # Delete an item from the database.
 def delete(ids):
@@ -26,9 +29,7 @@ def delete(ids):
     return
 
 def delete_id(id):
-    from sire.printer import *
-    from sire.helpers import *
-    from sire.misc import *
+
     result = dbexec("SELECT * FROM item WHERE id = '%s'" % id, None, False)
 
     # doesn't exist

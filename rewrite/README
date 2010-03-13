@@ -1,3 +1,124 @@
-=== About Musync ===
+[EXAMPLES]
 
-=== Configuration ===
+# add to the default category:
+sire -a "rule the earth"
+sire -a eat
+sire -a sleep
+
+# add to category 3:
+sire -a "build a bunker" --destination 3
+sire -a profit -D 3
+
+# add to category "life goals":
+sire -a "world domination" -D "life goals"
+
+# list all items in all categories
+sire -l all
+
+# list all items in category "life goals"
+sire -l "life goals"
+
+# list all items in category 'somecat' added no more than 10 days ago
+sire --days-ago 10 --list somecat
+sire -y 10 -l somecat
+
+# same thing in default category
+sire --days-ago 10
+sire -y 10
+
+# list all items in the default category (specified in sirerc)
+sire
+
+# only list all category titles
+sire -l titles
+
+# list duplicates in all categories
+sire -l dupe
+
+# list duplicates in category '1', '2', 'life goals' and 'gk'
+sire -l dupe -D 1,2,"life goals",3,gk
+sire --list dupe --destination 1,2,"life goals",3,gk
+
+# delete item with ID '39'
+sire --delete 39
+sire -d 39
+
+# delete items with ID '12', '2023' and '45'
+sire -d 12,2023,45
+
+# move item with ID '23' to the category 'life goals'
+sire --move 23 --destination "life goals"
+sire -m 23 -D "life goals"
+
+# move item with ID '23' to the category '3'
+sire -m 23 --destination 3
+
+# move item with ID '569' to the default category (specified in sirerc)
+sire -m 569
+
+# search for 'world domination' and 'eat'
+sire -f "world DomINAatiON"
+sire --find eat
+sire -f eat
+
+# change the value of the item with ID '34'
+sire -c 34 -D "new value for 34"
+
+# insert some text before the value of the item with ID '34' using 
+# references ('%(<number>)'), and self references ('%(#)')
+sire --change 34 --destination "text before the item %(34)"
+sire -c 34 -D "text before the item %(#)"
+
+# use the value of another item in this item's value
+sire -c 34 -D "%(204)"
+
+# change the value of the items with IDs '12','13','14','402','94'
+sire -c 12,13,14,402,94 -D "some text, may have %(102) and %(40) and so on"
+
+# combine self references, ordinary references and multiple IDs
+sire -c 2,30,409 -D "%(300), %(20) is crap, but %(#) and %(2) is great!"
+
+# hide things when listing category 'somecat' (self-explanatory)
+sire --no-color --no-id --no-newline --no-category --list somecat
+sire -LINC --list somecat
+sire --hide-all --list somecat
+sire -Hl somecat
+
+# pretend to add to see if the thing you want to do is actually going to do what you want
+sire --pretend --delete 34,45,32,504
+sire -pd 34,45,32,504
+
+# Use another profile called 'dave' (will be created if new one) and add an item to category 'dcat'.
+# In this case the new profile config file will be in '~/.sire/altrc/dave' and the database in 
+# '~/.sire/altdb/dave'.
+# 
+# When you use another profile, you will use another database (flatfile) and another config file.
+# This might be useful if you're using a script connected to a web page or an irc channel where other
+# people may add/remove items and you don't want your own database to be used.
+sire --profile dave --add "some value" --destination dcat
+sire -p dave -a "some value" -d dcat
+
+# use profile 'dave' to list its default category
+sire -p dave
+
+# add a new category to your config file
+# WARNING: You will loose all the comments you've made in your config file! Better to edit it manually!
+sire --add-category "a new category title" --destination newcat
+sire -A "a new category title" -D newcat
+
+# the same thing but with another profile
+sire --profile dave --add-category "a new category title" --destination newcat
+sire -p dave -A "a new category title" -D newcat
+
+# print formated table showing some information about items with ID '1', '230' and '20'
+sire --info 1,230,20
+sire -i 1,230,20
+
+# print formated tables showing some information about items with ID 334 and all with IDs from 200 to 300, except for ID 3, 4 and 103
+sire --info %103,334,200-300,%3,%4
+
+
+
+
+
+

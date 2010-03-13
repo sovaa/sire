@@ -1,9 +1,12 @@
 
+from sire.helpers import *
+from sire.printer import *
+from sire.misc import *
+import sys
+
 # Execute SQL statement.
 def dbexec(template, values, volatile):
     from sire.shared import db
-    from sire.helpers import pretend
-    import sire.shared
 
     # volatile is all UPDATE, INSERT etc., so if pretending, 
     # don't actually do anything, just look busy so the boss
@@ -20,11 +23,9 @@ def dbexec(template, values, volatile):
     return cursor.fetchall()
 
 def connect():
-    from sire.printer import *
-    from sire.helpers import *
-    from sire.misc import *
-    import sys
-
+    from sire.helpers import config_value
+    from sire.printer import text_warning
+    from sire.misc import Misc
     db = None
     type = get_db_type()
     if type == "sqlite":
@@ -80,8 +81,6 @@ def connect():
 # TODO: check for mysqldump
 def db_backup():
     import commands, sys, os
-    from sire.printer import *
-    from sire.helpers import *
     text_note("Backing up database...")
 
     type = get_db_type()
@@ -121,8 +120,6 @@ def db_backup():
 
 # TODO: check for gunzip
 def db_restore():
-    from sire.printer import *
-    from sire.helpers import *
     import os
     text_note("Restoring database from backup...")
     if pretend():
@@ -143,11 +140,8 @@ def db_restore():
     return
 
 def get_db_type():
-    from sire.helpers import *
-    from sire.printer import *
-    from sire.misc import *
-    import sys
-
+    from sire.helpers import config_value
+    from sire.printer import text_error
     type = config_value("database.type")
     if not type:
         text_error(Misc.ERROR["dbtype"])
@@ -158,10 +152,6 @@ def get_db_type():
     return type
 
 def get_db_backup_location(type):
-    from sire.helpers import *
-    from sire.printer import *
-    from sire.misc import *
-
     dbbak = config_value("database.backup")
     if not dbbak:
         text_warning(Misc.ERROR["dbbackup"])
@@ -169,10 +159,6 @@ def get_db_backup_location(type):
     return dbbak
 
 def get_db_location(type):
-    from sire.helpers import *
-    from sire.printer import *
-    from sire.misc import *
-
     dbloc = config_value("database.location")
     if not dbloc:
         text_warning(Misc.ERROR["dbloc"])

@@ -94,7 +94,7 @@ def pretend():
 
 # Prints version number, licence and authors with email.
 def version():
-    print NAME,VERSION,'\n',LICENCE,'\n\nWritten by: ',AUTHORS,EMAIL
+    print Misc.NAME,Misc.VERSION,'\n',Misc.LICENCE,'\n\nWritten by: ',Misc.AUTHORS,Misc.EMAIL
     return
 
 # check if item exists in a category
