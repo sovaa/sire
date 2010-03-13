@@ -2,8 +2,8 @@
 ; 
 ; 1. Config is like this: 'key: value'.
 ; 2. The key can be anything except ':'.
-; 3. You may have any number of catagories.
-; 4. The catagory key must be identical to the color and sort key (if you 
+; 3. You may have any number of categories.
+; 4. The category key must be identical to the color and sort key (if you 
 ;    specify any of these).
 ; 5. A 'defval' value must be identical to the key that you wan't to have as 
 ;    your default for that operation.
@@ -67,25 +67,25 @@ width: 60
 
 ; defval.list 
 ; specifies the default caagory when listing ('sire -l' will list the specified
-; default catagory).
+; default category).
 ;
 ; defval.add 
-; Specifies the default catagory when adding ('sire -a <title>' will add the
-; item '<title>' to the default catagory).
+; Specifies the default category when adding ('sire -a <title>' will add the
+; item '<title>' to the default category).
 ;
 ; defval.move
-; Specifies the default catagory when moving if no move.<catagory> is 
+; Specifies the default category when moving if no move.<category> is 
 ; specified ('sire -m <id>' will move the item with ID '<id>' to this 
-; catagory).
+; category).
 ; 
 ; defval.color 
-; Specifies the default color when printing catagory titles. If defval.color 
+; Specifies the default color when printing category titles. If defval.color 
 ; is not specified, no color will be used if none is specified to the spesific
-; catagory.
+; category.
 ;
 ; defval.sort
 ; Specifies what to sort after when no sorting is specified for a specific 
-; catagory. If no 'defval.sort' is specified, no sorting will be made.
+; category. If no 'defval.sort' is specified, no sorting will be made.
 ;
 ; defval.duplicates
 ; TODO
@@ -97,9 +97,9 @@ list: 1
 add: 1
 duplicates: 0
 
-; move.<catagory>
-; Specifies the default catagory to move to from the catagory <catagory>. 
-; If not specified for a certain catagory, 'defval.move' will be used.
+; move.<category>
+; Specifies the default category to move to from the category <category>. 
+; If not specified for a certain category, 'defval.move' will be used.
 [move]
 sjoslaget: sjoslaget
 abbenay: abbenay
@@ -115,8 +115,8 @@ q: q
 ; find.showcats
 ; If not specified or set to '0', results of a search will be sorted according
 ; to the distace from the searched-for string. If set to '1', all results will
-; be sorted according to what catagory they're in, and the catagory name will
-; be printed before all results in that catagory.
+; be sorted according to what category they're in, and the category name will
+; be printed before all results in that category.
 ;
 ; find.edits
 ; The number of characters that are allowed to be edited when searching for an
@@ -145,8 +145,8 @@ edits: 0
 abbenay: 1
 fm: 1
 
-; Catagories are specified by 'key': 'description'
-[catagories]
+; Categories are specified by 'key': 'description'
+[categories]
 wiki: wiki
 life goals: Things to do before I die
 buy: Things to buy
@@ -170,7 +170,7 @@ sjoslaget: Vilka som ska på Sjöslaget
 q: Quotes
 10: Games I've played
 
-; The number indicates what catagory key the color is used for.
+; The number indicates what category key the color is used for.
 ; Colors may be: red, yellow, green, purple, blue, magenta, cyan.
 [colors]
 life goals: magenta
@@ -182,8 +182,8 @@ abbenay: cyan
 fm: magenta
 
 ; What to sort by. May be 'none', 'id', 'time' or 'title'. Key is for 
-; 'catagory key'. 'time' will sort for how long an item has been in the 
-; current catagory. When an item is moved from one catagory to another, the
+; 'category key'. 'time' will sort for how long an item has been in the 
+; current category. When an item is moved from one category to another, the
 ; time is reset to 0.
 ; default is 'title'
 [sort]

@@ -16,6 +16,7 @@ def dbexec(template, values, volatile):
         cursor.execute(template)
     else:
         cursor.execute(template, values)
+    db.commit()
     return cursor.fetchall()
 
 def connect():
@@ -25,15 +26,7 @@ def connect():
     import sys
 
     db = None
-    type = config_value("database.type")
-    if not type:
-        text_error(Misc.ERROR["dbtype"])
-        sys.exit(1)
-
-    if type not in Misc.DBS:
-        text_error(Misc.ERROR["dbunknown"])
-        sys.exit(1)
-
+    type = get_db_type()
     if type == "sqlite":
         from pysqlite2 import dbapi2 as sqlite3
 
@@ -48,25 +41,23 @@ def connect():
             text_error(Misc.ERROR["dbcon"])
             sys.exit(1)
 
-    if type == "mysql":
+    elif type == "mysql":
         import MySQLdb
         host = config_value("database.host")
+        username = config_value("database.user")
+        password = config_value("database.pass")
+        dbname = config_value("database.name")
 
         if not host:
-            text_warning(Misc.ERROR["db"])
+            text_warning(Misc.ERROR["dbinfohost"])
             host = "localhost"
-            sys.exit(1)
-
-        if not config_value("database.user"):
-            text_error(Misc.ERROR["db"])
-            sys.exit(1)
-
-        if not config_value("database.pass"):
-            text_error(Misc.ERROR["db"])
-            sys.exit(1)
-
-        if not config_value("database.name"):
-            text_error(Misc.ERROR["db"])
+        if not username:
+            text_error(Misc.ERROR["dbinfouser"])
+        if not password:
+            text_error(Misc.ERROR["dbinfopass"])
+        if not dbname:
+            text_error(Misc.ERROR["dbinfoname"])
+        if None in [username, password, dbname]:
             sys.exit(1)
 
         try:
@@ -86,3 +77,104 @@ def connect():
 
     return db
 
+# TODO: check for mysqldump
+def db_backup():
+    import commands, sys, os
+    from sire.printer import *
+    from sire.helpers import *
+    text_note("Backing up database...")
+
+    type = get_db_type()
+    dbbak = get_db_backup_location(type)
+
+    if type == "sqlite":
+        dbloc = get_db_location(type)
+        if os.path.exists(dbbak + '.gz'):
+            os.remove(dbbak + '.gz')
+
+        os.popen('cp %s %s' % (dbloc, dbbak))
+        os.popen('gzip -9 %s' % dbbak)
+
+    elif type == "mysql":
+        import MySQLdb
+        host = config_value("database.host")
+        username = config_value("database.user")
+        password = config_value("database.pass")
+        dbname = config_value("database.name")
+
+        if not host:
+            text_warning(Misc.ERROR["dbinfohost"])
+            host = "localhost"
+        if not username:
+            text_error(Misc.ERROR["dbinfouser"])
+        if not password:
+            text_error(Misc.ERROR["dbinfopass"])
+        if not dbname:
+            text_error(Misc.ERROR["dbinfoname"])
+        if None in [username, password, dbname]:
+            sys.exit(1)
+
+        os.popen('mysqldump -u %s -p%s %s | gzip -9 > %s.gz' % (username, password, dbname, dbbak))
+
+    text_note("Backup complete!")
+    return
+
+# TODO: check for gunzip
+def db_restore():
+    from sire.printer import *
+    from sire.helpers import *
+    import os
+    text_note("Restoring database from backup...")
+    if pretend():
+        return text_note("Backup restored!")
+
+    type = get_db_type()
+    dbbak = get_db_backup_location(type)
+    if type == "sqlite":
+        dbloc = get_db_location(type)
+        os.popen("gunzip -c %s > %s" % (dbbak, dbloc))
+
+    elif type == "mysql":
+        username = config_value('database.user')
+        password = config_value('database.pass')
+        dbname = config_value('database.name')
+        os.open("gunzip -c %s.gz | mysql -u %s -p%s %s" % (dbbak, username, password, dbname))
+    text_note("Backup restored!")
+    return
+
+def get_db_type():
+    from sire.helpers import *
+    from sire.printer import *
+    from sire.misc import *
+    import sys
+
+    type = config_value("database.type")
+    if not type:
+        text_error(Misc.ERROR["dbtype"])
+        sys.exit(1)
+    if type not in Misc.DBLOCATION.keys():
+        text_error(Misc.ERROR["dbunknown"] % str(type))
+        sys.exit(1)
+    return type
+
+def get_db_backup_location(type):
+    from sire.helpers import *
+    from sire.printer import *
+    from sire.misc import *
+
+    dbbak = config_value("database.backup")
+    if not dbbak:
+        text_warning(Misc.ERROR["dbbackup"])
+        dbbak = Misc.DBBACKUP[type]
+    return dbbak
+
+def get_db_location(type):
+    from sire.helpers import *
+    from sire.printer import *
+    from sire.misc import *
+
+    dbloc = config_value("database.location")
+    if not dbloc:
+        text_warning(Misc.ERROR["dbloc"])
+        dbloc = Misc.DBLOCATION[type]
+    return dbloc

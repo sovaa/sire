@@ -51,19 +51,20 @@ def is_valid_id_number(id):
 # figure out if an item-to-be-added is allowed in that category according to the category's policy
 def enforce_duplicate_policy(name, category):
     from shared import opt
-    dup = get_duplicate_policy(category)
+    import sys
 
+    dup = get_duplicate_policy(category)
     if dup == '0' and item_exists(name):
         existing_category = get_category_from_title(name)
         existing_duplicate = get_duplicate_policy(existing_category)
         if existing_duplicate not in ["1", "2"]:
-            printer.text_warning("Item already exists in category '%s'. Use (--force, -f) to add anyway." % c(existing_category))
+            text_warning("Item already exists in category '%s'. Use (--force, -f) to add anyway." % c(existing_category))
             if not opt.get('force'):
                 sys.exit(1)
 
     # need to check both
     if dup == '1' and title_exists(category, name):
-        printer.text_warning("Item already exists in category '%s'. Use (--force, -f) to add anyway." % c(category))
+        text_warning("Item already exists in category '%s'. Use (--force, -f) to add anyway." % c(category))
         if not opt.get('force'):
             sys.exit(1)
     return
@@ -130,10 +131,10 @@ def get_title_from_id(id):
 def get_category_from_title(title):
     import sire.printer as printer
     from sire.shared import db, config
-    res = dbexec("SELECT cat FROM item WHERE title = '%s'" % printer.format_text_in(title), None, False)
+    res = dbexec("SELECT cat FROM item WHERE title = '%s'" % format_text_in(title), None, False)
     if len(res) > 0:
         return res[0][0]
-    printer.error(misc.ERROR["notitle"] % printer.c(title))
+    error(misc.ERROR["notitle"] % c(title))
     sys.exit(1)
 
 # Get the category of a title with a certain ID.
@@ -144,7 +145,7 @@ def get_category_from_id(id):
     res = dbexec("SELECT cat FROM item WHERE id = '%s'" % id, None, False)
     if len(res) > 0:
         return res[0][0]
-    printer.error(misc.ERROR["item"] % printer.c(id))
+    error(misc.ERROR["item"] % c(id))
     sys.exit(1)
 
 # Internal function to check for already existing items.

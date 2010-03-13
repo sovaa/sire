@@ -28,15 +28,28 @@ class Misc:
         'cyan'    : "\033[36m",
     }
 
-    DBS = (
-        "sqlite",
-        "mysql",
-    )
+    DBLOCATION = {
+        'mysql':  "localhost",
+        'sqlite': "/etc/sire/db.sqlite",
+    }
+
+    DBBACKUP = {
+        'mysql':  "/etc/sire/db.mysql.backup",
+        'sqlite': "/etc/sire/db.sqlite.backup",
+    }
     
     ERROR = {
         'dbcon':       "It looks like you don't have a database (or wrongly configured). Please create/configure one first.",
         'dbtype':      "No database type specified in the config file. Please specify and try again.",
-        'dbloc':       "The location/host of the database is not specified in the config file, using the default and hoping for the best.",
+        'dbunknown':   "The database type specified in the config file ('%s') is not a supported type. Please specify and try again.",
+        'dbloc':       ("The location/host of the database is not specified in the config file, using the default ('%s' for mysql, '%s' " + \
+                       "for sqlite) and hoping for the best.") % (DBLOCATION['mysql'], DBLOCATION['sqlite']),
+        'dbrestore':   "Could not restore database! Do you have the right permissions where the database and it's backup is located?",
+        'dbbackup':    ("The location to store the database backup is not defined in the config file, using the default ('%s' for mysql " + \
+                       "and '%s' for sqlite) and hoping for the best.") % (DBBACKUP['mysql'], DBBACKUP['sqlite']),
+        'dbinfouser':  "You need to specify the username for the database in the config file.",
+        'dbinfopass':  "You need to specify the password for the database in the config file.",
+        'dbinfoname':  "You need to specify the name of the database in the config file.",
         'item':        "Item with ID '%s' does not exist.",
         'dest':        "Need destination. Use --destination, -d.",
         'destcat':     "Need to specify a category ID. Specify it with --destination, -D.",

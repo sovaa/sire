@@ -24,6 +24,17 @@ def text_warning(text):
             print "Warning: " + text
     return
 
+# print a notice (like 'Deleted item blabla' or 'Added item blabla')
+def text_note(text):
+    from sire.shared import opt
+    text = format_text_out(text)
+    if opt.get('verbose') is not 0:
+        if opt.get('color'):
+            print "%s%sNote: %s%s" % (C["bold"], C["green"], C["default"], text)
+        else:
+            print "Note: " + text
+    return
+
 def text_info(text):
     text = format_text_out(text)
     print text
@@ -128,19 +139,19 @@ def print_info(type, values):
         text_info("Title    : %s" % c(values[1]))
         text_info("Category : %s" % c(values[2]))
         if values[3]:
-            text_info("Age      : %s" % helpers.format_time_passed(values[3]))
+            text_info("Age      : %s" % format_time_passed(values[3]))
         print
 
     elif style is '1':
         text_info("%s item with ID '%s' and title '%s' %s category '%s'" % \
             (words[0], c(values[0]), c(str(values[1])), words[1], c(values[2])))
         if values[3]:
-            text_info("It was in that category for %s" % helpers.format_time_passed(values[3]))
+            text_info("It was in that category for %s" % format_time_passed(values[3]))
 
     elif style is '2':
         text_info("%s '%s' '%s' %s '%s'" % (words[0], c(values[0]), c(str(values[1])), words[1], c(values[2])))
         if values[3]:
-            text_info("Age was %s" % helpers.format_time_passed(values[3]))
+            text_info("Age was %s" % format_time_passed(values[3]))
 
     elif style is '3':
         text_info("%s '%s' '%s' %s '%s'" % (words[0], c(values[0]), c(str(values[1])), words[1], c(values[2])))

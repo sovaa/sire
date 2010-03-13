@@ -11,6 +11,7 @@ from sire.list import list
 from sire.move import move
 from sire.change import change
 from sire.add import add
+from sire.delete import delete
 
 def init():
     import sire.dbman as dbman
@@ -89,11 +90,11 @@ def entrypoint():
         return
 
     if do.change is not None:
-        change(do.change, do.dest, dbfile)
+        change(do.change, do.dest)
         return
 
     if do.delete is not None:
-        delete(do.delete, dbfile)
+        delete(do.delete)
         return
 
     if do.info is not None:
