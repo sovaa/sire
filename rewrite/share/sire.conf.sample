@@ -58,11 +58,12 @@
 ;    Deleted '<title here>'
 ;
 [general]
-showid: 1
-showtable: 1
-showscore: 0
+printstyle: 2
 inforangewarn: 0
-printstyle: 0
+showtable: 1
+showid: 1
+showscore: 0
+width: 60
 
 ; defval.list 
 ; specifies the default caagory when listing ('sire -l' will list the specified
@@ -85,22 +86,31 @@ printstyle: 0
 ; defval.sort
 ; Specifies what to sort after when no sorting is specified for a specific 
 ; catagory. If no 'defval.sort' is specified, no sorting will be made.
+;
+; defval.duplicates
+; TODO
 [defval]
-list: 1
-add: 1
-move: 2
 sort: title
 color: green
+move: 2
+list: 1
+add: 1
+duplicates: 0
 
 ; move.<catagory>
 ; Specifies the default catagory to move to from the catagory <catagory>. 
 ; If not specified for a certain catagory, 'defval.move' will be used.
 [move]
-0: 1
-1: 2
-learn: forget
+sjoslaget: sjoslaget
+abbenay: abbenay
+fm: fm
+6: 5
 4: 10
-6: gk
+1: 2
+2: 1
+0: 1
+q: q
+5: 6
 
 ; find.showcats
 ; If not specified or set to '0', results of a search will be sorted according
@@ -129,38 +139,47 @@ edits: 0
 ; If set to 2, will add without complain to this category even if it exists in
 ; another category and/or this one.
 [duplicates]
-1: 0
+1: 1
 2: 0
 0: 1
 abbenay: 1
+fm: 1
 
 ; Catagories are specified by 'key': 'description'
 [catagories]
-0: Movies that I'd wan't to see, but don't have
-1: Movies that I have, but not seen
-2: Movies that I've seen
-3: School work to be done
-4: Games I want to play
-10: Games I've played
-5: Books read
-6: Books I want to read
-8: Things to do before I turn 25
-life goals: Things to do before I die
-9: Remember
 wiki: wiki
+life goals: Things to do before I die
 buy: Things to buy
-write: Things I want to write about
+abbenay: Things we need for Abbenay Hackspace
+time: How long has it been?
+sire todo: sire TODO
 learn: Things I want to learn
 gk: General Knowledge
+fm: Fovorite movies
+write: Things I want to write about
+sjoslaget: Vilka som ska på Sjöslaget
+1: Movies that I have, but not seen
+0: Movies that I'd wan't to see, but don't have
+3: School work to be done
+2: Movies that I've seen
+5: Books read
+4: Games I want to play
+6: Books I want to read
+9: Remeber
+8: Things to do before I turn 25
+q: Quotes
+10: Games I've played
 
 ; The number indicates what catagory key the color is used for.
 ; Colors may be: red, yellow, green, purple, blue, magenta, cyan.
 [colors]
-0: red
+life goals: magenta
+abbenay: cyan
 1: yellow
 7: red
-life goals: magenta
+0: red
 9: cyan
+fm: magenta
 
 ; What to sort by. May be 'none', 'id', 'time' or 'title'. Key is for 
 ; 'catagory key'. 'time' will sort for how long an item has been in the 
@@ -168,9 +187,11 @@ life goals: magenta
 ; time is reset to 0.
 ; default is 'title'
 [sort]
+life goals: id
+abbenay: id
+write: title
 0: id
 2: time
-life goals: id
 
 [database]
 type: sqlite
