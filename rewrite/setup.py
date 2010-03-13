@@ -5,6 +5,9 @@ import sys, os, shutil
 PATH = "/etc/sire/"
 DB = PATH + "db.sqlite"
 CONF = PATH + "sire.conf"
+MANNAME = "sire.1.bz2"
+MANDST = "/usr/local/share/man/man1/"
+MANSRC = resource_filename(Requirement.parse("sire"), "docs/sire.1.bz2")
 SAMPLE = resource_filename(Requirement.parse("sire"), "share/sire.conf.sample")
 MODE = 0660
 
@@ -22,12 +25,31 @@ def print_error(string):
     print "\033[31m\033[1m" + string + "\033[0m"
     return
 
+def copy_manpage():
+    print
+    print_info("* Trying to copy manpage to '%s'." % MANDST)
+    try:
+        if not os.path.exists(MANDST):
+            print "  * '%s' does not exist, creating it." % MANDST
+            os.mkdir(MANDST)
+        else:
+            print "  * Directory '%s' already exists, not creating it." % MANDST
+        
+        if not os.path.exists(MANDST + MANNAME):
+            print "  * Copying man page to '%s'." % (MANDST + MANNAME)
+            shutil.copyfile(MANSRC, MANDST + MANNAME)
+        else:
+            print "  * Man page already exists, not copying."
+    except IOError:
+        print_error("  * Unable to copy man page to '%s'!" % (MANDST + MANNAME))
+    return
+
 def copy_config():
     print
     print_info("* Trying to copy sample config file to '%s'." % CONF)
     try:
         if not os.path.exists(PATH):
-            print "  * '%s' does not exists, creating it." % PATH
+            print "  * '%s' does not exist, creating it." % PATH
             os.mkdir(PATH)
             print "  * Setting permissions on '%s' to the same as the sample configuration." % PATH
             fperm(PATH, 0770)
@@ -42,7 +64,7 @@ def copy_config():
         else:
             print "  * Config file already exists, not copying."
     except IOError:
-        print_error("* Either unable to copy configuration file to '%s' or set it's permissions." % CONF)
+        print_error("  * Either unable to copy configuration file to '%s' or set it's permissions!" % CONF)
     return
 
 def create_database():
@@ -103,4 +125,5 @@ setup(name='sire',
 )
 
 copy_config()
+copy_manpage()
 create_database()
