@@ -1,41 +1,35 @@
 #!/usr/bin/python
 
+from sire.misc import *
 import sire.shared
-import sire.helpers
-import sire.args
+shared.opt = misc.Misc.miscfunctions()
 
-import sire.misc as misc
+from sire.helpers import *
+import sys
+
 from sire.list import list
 from sire.move import move
 from sire.change import change
-
-shared.opt = misc.Misc.miscfunctions()
+from sire.add import add
 
 def init():
-    import MySQLdb
+    import sire.dbman as dbman
     import os
     # Check if config and database files exists and are read- and writeable.
-    if not os.path.exists(misc.Misc.CONFIG):
-        text_error(ERROR["dbcat"])
+    if not os.path.exists(Misc.CONFIG):
+        text_error(Misc.ERROR["config"])
         sys.exit(1)
 
     # Read the config file.
-    config = helpers.parse_config(misc.Misc.CONFIG)
-
-    db = MySQLdb.connect(
-        config["database.host"], 
-        config["database.user"], 
-        config["database.pass"], 
-        config["database.name"]
-    )
-    shared.db = db
-    shared.config = config
+    shared.config = parse_config(Misc.CONFIG)
+    shared.db = dbman.connect()
     return
 
 # Handle command line arguments.
 def entrypoint():
+    from sire.args import *
     init()
-    do = args.parseargs()
+    do = parseargs()
     opt = shared.opt
 
     if do.pretend is True:

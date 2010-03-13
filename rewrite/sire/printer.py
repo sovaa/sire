@@ -5,8 +5,7 @@ C = misc.C
 # print and error (like 'No item with ID blalba')
 def text_error(text):
     from sire.shared import opt
-    import sire.printer as printer
-    text = printer.format_text_out(text)
+    text = format_text_out(text)
     if opt.get('verbose') is not 0:
         if opt.get('color'):
             print "%s%sError: %s%s" % (C["bold"], C["red"], C["default"], text)
@@ -17,8 +16,7 @@ def text_error(text):
 # print a warning. Sort of the same as error, duh, should remove one of them
 def text_warning(text):
     from sire.shared import opt
-    from sire.printer import printer
-    text = printer.format_text_out(text)
+    text = format_text_out(text)
     if opt.get('verbose') is not 0:
         if opt.get('color'):
             print "%s%sWarning: %s%s" % (C["bold"], C["yellow"], C["default"], text)
@@ -107,9 +105,15 @@ def format_text_out(title):
     title = re.sub("&#39;", "'", title)
     return title
 
-def info(type, values):
-    import sire.helpers as helpers
-    style = helpers.config_value("general.printstyle")
+def text_color(text, color, bold = False):
+    if not bold:
+        return C[color] + text + C["default"]
+    return C[color] + C["bold"] + text + C["default"]
+
+def print_info(type, values):
+    from sire.helpers import *
+
+    style = config_value("general.printstyle")
     if type is 'delete':
         words = ('Deleted', 'from', 'red', True)
     elif type is 'add':

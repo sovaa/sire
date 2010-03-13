@@ -1,9 +1,9 @@
 
-from sire.printer import c
+from sire.printer import *
+from sire.dbman import *
 from sire.misc import Misc as misc
+from sire.shared import opt
 C = misc.C
-
-print c('asdf')
 
 # try to see if specified category is valid
 def is_valid_category(cat):
@@ -86,23 +86,6 @@ def is_young(date):
             return False
     return True
 
-# Execute SQL statement.
-def dbexec(template, values, volatile):
-    from sire.shared import db
-    import MySQLdb
-    # volatile is all UPDATE, INSERT etc., so if pretending, 
-    # don't actually do anything, just look busy so the boss
-    # won't thing something's up
-    if volatile and pretend():
-        return
-
-    cursor = db.cursor()
-    if values is None:
-        cursor.execute(template)
-    else:
-        cursor.execute(template, values)
-    return cursor
-
 # see if we're only pretending to be mad
 def pretend():
     from sire.shared import opt
@@ -116,7 +99,7 @@ def version():
 # check if item exists in a category
 def title_exists(cat, item):
     cursor = dbexec("SELECT * FROM item WHERE title = '%s' AND cat = '%s'" % (item, cat), None, False)
-    if len(cursor.fetchall()) > 0:
+    if len(cursor) > 0:
         return True
     return False
 
@@ -127,7 +110,7 @@ def id_exists(id):
         sys.exit(1);
 
     cursor = dbexec("SELECT * FROM item WHERE id = '%s'" % str(id), None, False)
-    if len(cursor.fetchall()) > 0:
+    if len(cursor) > 0:
         return True
     return False
     
@@ -138,7 +121,7 @@ def get_title_from_id(id):
         sys.exit(1);
 
     cursor = dbexec("SELECT title FROM item WHERE id = '%s'" % id, None, False)
-    res = cursor.fetchall()
+    res = cursor
     if len(res) > 0:
         return res[0][0]
     text_error(misc.ERROR["item"] % c(id)) 
@@ -147,7 +130,7 @@ def get_title_from_id(id):
 def get_category_from_title(title):
     import sire.printer as printer
     from sire.shared import db, config
-    res = dbexec("SELECT cat FROM item WHERE title = '%s'" % printer.format_text_in(title), None, False).fetchall()
+    res = dbexec("SELECT cat FROM item WHERE title = '%s'" % printer.format_text_in(title), None, False)
     if len(res) > 0:
         return res[0][0]
     printer.error(misc.ERROR["notitle"] % printer.c(title))
@@ -158,7 +141,7 @@ def get_category_from_id(id):
     import sire.helpers as helpers
     import sire.printer as printer
     import sys
-    res = dbexec("SELECT cat FROM item WHERE id = '%s'" % id, None, False).fetchall()
+    res = dbexec("SELECT cat FROM item WHERE id = '%s'" % id, None, False)
     if len(res) > 0:
         return res[0][0]
     printer.error(misc.ERROR["item"] % printer.c(id))
@@ -167,7 +150,7 @@ def get_category_from_id(id):
 # Internal function to check for already existing items.
 def item_exists(item):
     cursor = dbexec("SELECT * FROM item WHERE title = '%s'" % item, None, False)
-    if len(cursor.fetchall()) > 0:
+    if len(cursor) > 0:
         return True
     return False
 
@@ -198,7 +181,7 @@ def format_time_passed(date):
 # get all category names
 def get_all_categories():
     cursor = dbexec("SELECT DISTINCT cat FROM item", None, False)
-    return [x[0] for x in cursor.fetchall()]
+    return [x[0] for x in cursor]
 
 # calculate how long time has passed since a certain date and return
 # a tuple on the form (years, days, hours, minutes, seconds)
@@ -211,7 +194,7 @@ def time_passed(date):
 # internal function used by info() a heck of a lot to get info from -one- ID
 def get_info_from_id(id, rangewarn = None):
     import time
-    result = dbexec("SELECT * FROM item WHERE id = '%s'" % str(id), None, False).fetchall()
+    result = dbexec("SELECT * FROM item WHERE id = '%s'" % str(id), None, False)
     if not result:
         if rangewarn:
             text_error(misc.ERROR["item"] % c(id))

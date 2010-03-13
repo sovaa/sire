@@ -50,7 +50,7 @@ def list(category, dests = None, colw_score = 7, colw_id = 5):
     if helpers.config_value("general.showtable") and newline is '\n':
         colw_title = 0
         for category in dbs:
-            dbsel = helpers.dbexec("SELECT * FROM item WHERE cat = '%s'" % category, None, False).fetchall()
+            dbsel = helpers.dbexec("SELECT * FROM item WHERE cat = '%s'" % category, None, False)
             for id, title, date, cat, score in dbsel:
                 if len(title) > colw_title:
                     colw_title = len(title)
@@ -62,7 +62,7 @@ def list(category, dests = None, colw_score = 7, colw_id = 5):
             printer.text_error(misc.ERROR["emptycat"] % c(category))
             return
 
-        dbsel = helpers.dbexec("SELECT * FROM item WHERE cat = '"+category+"'", None, False).fetchall()
+        dbsel = helpers.dbexec("SELECT * FROM item WHERE cat = '"+category+"'", None, False)
 
         # Sorting is optional.
         sortmethod = opt.get('sort')
@@ -148,7 +148,7 @@ def list_duplicates(cats):
         sqlcat = sqlcat[:-4]
 
     # fire up the main laseeer
-    results = helpers.dbexec("SELECT id, title, COUNT(title) FROM item %s GROUP BY title HAVING (COUNT(title) > 1)" % sqlcat, None, False).fetchall()
+    results = helpers.dbexec("SELECT id, title, COUNT(title) FROM item %s GROUP BY title HAVING (COUNT(title) > 1)" % sqlcat, None, False)
     if not results:
         printer.text_note("No duplicates found in category '%s'." % c(cat))
         return
@@ -158,7 +158,7 @@ def list_duplicates(cats):
     for item in results:
         print
         printer.text_note("%s entries found for '%s':" % (c(str(item[2])), c(item[1])))
-        dupeids = helpers.dbexec(db, "SELECT id, cat FROM item WHERE title = '%s'" % item[1], None, False).fetchall()
+        dupeids = helpers.dbexec(db, "SELECT id, cat FROM item WHERE title = '%s'" % item[1], None, False)
         for id in dupeids:
             print "  ID '%s' in category '%s'" % (c(str(id[0])), c(id[1]))
     return

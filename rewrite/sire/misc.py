@@ -3,13 +3,7 @@ class Misc:
     import string, sys, os, ConfigParser, time, shutil
     import MySQLdb # database
 
-    HOME = os.path.expanduser("~")
-    PATH = HOME + "/.sire/"
-    CONFIG = PATH + "/sirerc"
-    DB = PATH + "/siredb"
-    ALTDB = PATH + "/altdb/"
-    ALTRC = PATH + "/altrc/"
-    DBBAK = PATH + "dbbak"
+    CONFIG = "/etc/sire/sire.conf"
     
     NAME = "sire"
     VERSION = "0.2.3"
@@ -33,8 +27,16 @@ class Misc:
         'm'       : "\033[35m",
         'cyan'    : "\033[36m",
     }
+
+    DBS = (
+        "sqlite",
+        "mysql",
+    )
     
     ERROR = {
+        'dbcon':       "It looks like you don't have a database (or wrongly configured). Please create/configure one first.",
+        'dbtype':      "No database type specified in the config file. Please specify and try again.",
+        'dbloc':       "The location/host of the database is not specified in the config file, using the default and hoping for the best.",
         'item':        "Item with ID '%s' does not exist.",
         'dest':        "Need destination. Use --destination, -d.",
         'destcat':     "Need to specify a category ID. Specify it with --destination, -D.",
@@ -48,7 +50,7 @@ class Misc:
         'nodb':        "Database didn't exist. I created it for you.",
         'emptydb':     "Your database is empty.",
         'emptycat':    "Empty category '%s'.",
-        'dbcat':       "Database and/or config file not found. Should be in '~/.sire/'.",
+        'config':      "Config file not found. Should be in '~/.sire/'.",
         'defadd':      "defval.add not specified in config file, and no category specified on command line when adding.",
         'deflist':     "defval.list is not specified in config file, and no category specified on command line when listing.",
         'bad_id':      "'%s' is not a valid ID.",

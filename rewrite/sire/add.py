@@ -1,33 +1,30 @@
 '''
 Add an item to the database.
 '''
-def add(db, config, name, category):
+def add(title, category):
+    from sire.printer import *
+    from sire.helpers import *
+    from sire.misc import *
+    from sire.dbman import *
+    import sys
+
     if not category:
         category = config_value('defval.add')
         if not category:
-            text_error(ERROR['defadd'])
+            text_error(Misc.ERROR['defadd'])
             sys.exit(1)
 
     if not config_value('categories.' + category):
-        text_error(ERROR['nocat'] % c(category))
+        text_error(Misc.ERROR['nocat'] % c(category))
         sys.exit(1)
 
-    # sql friendly
-    name = format_text_in(name)
-
     # check if item is allowed to be added to this category according to its policy
-    enforce_duplicate_policy(db, config, name, category)
-
-    # time.time() returns float, so throw away the ms, then convert to string for writing
-    date = str(int(time.time()))
-
-    # FIXME: AUTO_INCREMENT
-    dbexec(db, 'UPDATE curid SET id = id + 1', None, True)
-    id = dbexec(db, 'SELECT * FROM curid', None, False).fetchall()[0][0]
+    enforce_duplicate_policy(title, category)
 
     # add the item to the db
-    dbexec(db, "INSERT INTO item (id, title, date, cat) VALUES ('%s', '%s', '%s', '%s')" % (id, name, date, category), True)
+    dbexec("INSERT INTO item (title, cat) VALUES ('%s', '%s')" % (format_text_in(title), category), None, True)
+    id = dbexec("SELECT last_insert_rowid()", None, False)[0][0]
 
-    print_info(config, 'add', (str(id), name, category, None))
+    print_info('add', (str(id), title, category, None))
     return
 

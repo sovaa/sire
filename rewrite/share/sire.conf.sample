@@ -9,7 +9,7 @@
 ;    your default for that operation.
 ; 6. Colors may be any of 'bold', 'red', 'green', 'yellow', 'blue', 'magenta'
 ;    and 'cyan'.
-
+;
 ; general.showid
 ; If not specified or set to '0', no ID numbers will be printed while listing
 ; or searching.
@@ -45,7 +45,7 @@
 ;
 ; 1: A bit more compact.
 ;    Deleted item with ID '600' and title '<title here>' from category '1'
-,    It was in that category for 0 years, 48 days, 22 hours, 28 minutes and 31 seconds.
+;    It was in that category for 0 years, 48 days, 22 hours, 28 minutes and 31 seconds.
 ;
 ; 2: Same info as 1, but more compact.
 ;    Deleted '600' '<title here>' from '1'
@@ -173,9 +173,5 @@ life goals: magenta
 life goals: id
 
 [database]
-host: localhost
-name: siredb
-pass: passowrd
-type: mysql
-user: sire
-
+type: sqlite
+location: /etc/sire/db.sqlite
