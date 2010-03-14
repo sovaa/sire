@@ -2,14 +2,13 @@ Requires:
 
     * Python 2.6
     * Latest Setuptools
+    * sqlite3
 
 How to install (as root or with sudo):
 
 #> sudo python setup.py install
 
-then either
-#> sudo cp share/sirerc /etc/
-or
-#> sudo cp share/sirerc ~/.sire/
+Database will be created for you (sqlite by default in '/etc/sire/db.sqlite').
+Config file will be copied to '/etc/sire/sire.conf'.
 
-Read share/sirerc for instructions on how to configure.
+Read '/etc/sire/sire.conf' for instructions on how to configure.
