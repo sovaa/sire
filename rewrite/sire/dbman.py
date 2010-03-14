@@ -1,6 +1,4 @@
 
-from sire.helpers import *
-from sire.printer import *
 from sire.misc import *
 import sys
 
@@ -152,6 +150,8 @@ def get_db_type():
     return type
 
 def get_db_backup_location(type):
+    from sire.helpers import config_value
+    from sire.printer import text_warning
     dbbak = config_value("database.backup")
     if not dbbak:
         text_warning(Misc.ERROR["dbbackup"])
@@ -159,6 +159,8 @@ def get_db_backup_location(type):
     return dbbak
 
 def get_db_location(type):
+    from sire.helpers import config_value
+    from sire.printer import text_warning
     dbloc = config_value("database.location")
     if not dbloc:
         text_warning(Misc.ERROR["dbloc"])
