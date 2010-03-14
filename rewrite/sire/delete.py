@@ -1,5 +1,4 @@
 
-from sire.dbman import dbexec, db_backup
 from sire.printer import *
 from sire.helpers import *
 from sire.misc import *
@@ -29,8 +28,8 @@ def delete(ids):
     return
 
 def delete_id(id):
-
-    result = dbexec("SELECT * FROM item WHERE id = '%s'" % id, None, False)
+    import sire.dbman as dbman
+    result = dbman.get_item_with_id(id)
 
     # doesn't exist
     if len(result) == 0:
@@ -39,7 +38,7 @@ def delete_id(id):
 
     cat = result[0][3]
     title = format_text_out(result[0][1])
-    dbexec("DELETE FROM item WHERE id = '%s'" % id, None, True)
+    dbman.delete(id)
     print_info('delete', (id, title, cat, result[0][2]))
     return
 

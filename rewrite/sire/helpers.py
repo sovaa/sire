@@ -17,7 +17,8 @@ def is_valid_category(cat):
 
 # try to see if specified ID, range, negative etc. is a valid ID
 def is_valid_id(id):
-    if id[0] is '%':
+    id = str(id)
+    if id[0] == '%':
         if not is_valid_id_number(id[1:]):
             text_error(misc.ERROR['bad_id'] % c(id))
             return False

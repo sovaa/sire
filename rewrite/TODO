@@ -1,0 +1,89 @@
+1.0.0:
+* dunno
+
+0.3.0:
+* clean up the code
+* divide different functionality in different files
+* installer
+* man page
+* unify negation, comma-separated values and range and add support to all relative functions
+
+0.2.3:
+--- * backup database before doing anything (on volatile operation)
+--- * ability to restore backed up database
+--- * (--delete, -d) takes range (e.g. 200-230)
+--- * different output styles which can be chosen in config
+--- * change 'all' to '%' as argument for (--list, -l) when listing all categories
+--- * ability to specify categories to show results from when using (--info, -i). E.g.: 'sire -i 100-200 -D 3,gk,2'
+--- * speed up list_duplicates(); let SQL handle it
+
+0.2.2:
+--- * who wants flatfile anyway, am I right?
+--- * ID ranges; e.g. 'sire -i 200-300'
+--- * ability to specify in config to not show warnings when using ranges with (--info, -i) if ID not found
+--- * ability to specify IDs -not- so show when using (--info, -i) using %<ID>
+--- * show score in info (--info, -i)
+
+0.2.1:
+--- * add config section 'move' and put all move-<cat>.<cat> there
+--- * fix broken search
+--- * support for duplicate policies
+--- * fix wrong category being refered to when adding already existing item
+--- * change format_title_(in|out) to format_text_(in|out)
+--- * replace single and double quotes with html equivalent, sql safe
+--- * support for --show-score, -W overrides config value
+--- * ability to assign a score to an item
+--- * sort using items score
+--- * specify sort on command line
+--- * support for general.showtable which shows description for the different columns
+--- * support for general.showscore which shows the score in the output table
+
+0.2.0:
+--- * updated the examples
+--- * more default values when adding new category/profile
+--- * support for (--pretend, -p) for pretending to do things
+--- * support for (--days-ago, -y) for listing items no older than specified value
+--- * support for adding new categories when using mysql
+--- * (--help, -h) shows correct usage
+--- * support for (--force, -F) when warnings are stopping execution to specify
+--- * support duplicates policy in config file
+--- * support for (--add-category, -g) for adding new categories (currently only for flatfile)
+--- * support for (--category-title, -y) used with -g, -u for specifying title of new category
+--- * supoprt for (--category-id, -u) used with -g, -y for specifying id of new category
+--- * support for (--profile, -p) for specifying a different profile (other db and conf)
+--- * support for (--quiet, -q) for suppressing warning/notice/error messages
+--- * support for (--no-category, -t) for skipping category title when listing
+--- * support for (--no-newline, -w) for printing ", " instead of newlines when listing
+--- * support for (--no-color, -o) for skipping colors when printing
+--- * change (--noid, -n) to (--no-id, -n)
+--- * better argument support using optparse
+--- * possibility to use either flat file database or mysql (specified in config file)
+
+0.1.7:
+--- * show how long an item was in a category when changed/deleted
+--- * sort using time in category
+--- * backup database before doing -anything-
+--- * command line option to hide ID (--noid, -n)
+--- * command line option when searching (--find, -f) to specify the number of allowed edits
+--- * date when added to category
+--- * support for (--info, -i) to show information of an item (time added, how long in category etc)
+
+0.1.6
+--- * fix mixed up category IDs being printed when adding a duplicate item
+--- * add support for easy self referencing when using change (--change, -c)
+--- * add support for comma seperated list when using change (--change, -c)
+--- * rename change (--change, -c) to move (--move, -m) 
+--- * add change (--change, -c) <ID> <new value> that changes the value of an item
+--- * add support for ID referencing: -c 200 "some text $200 more text"
+--- * list duplicates
+--- * search?
+--- * deflist for each operation
+--- * Show/hide ID's by default (specified in config).
+--- * Make --change, -c enabled.
+--- * config file to change categories, default category, colors?
+--- * IDs  gets fucked if greater than 9
+--- * change 'mode' and 'status' to category
+--- * change the bloody retarded name of the program
+--- * possibility to sort by ID or title in a category (config file)
+--- * check if already added in that category, warn if in other category
+--- * make deflist-change global on all categories IF NOT specified for a specific category

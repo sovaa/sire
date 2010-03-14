@@ -8,6 +8,7 @@ List either all categories or only the default category.
 '''
 def list(category, dests = None, colw_score = 7, colw_id = 5):
     from sire.shared import opt
+    import sire.dbman as dbman
 
     pnewline = opt.get('newline')
     pcolor = opt.get('color')
@@ -50,7 +51,8 @@ def list(category, dests = None, colw_score = 7, colw_id = 5):
     if config_value("general.showtable") and newline is '\n':
         colw_title = 0
         for category in dbs:
-            dbsel = dbexec("SELECT * FROM item WHERE cat = '%s'" % category, None, False)
+            dbsel = dbman.get_items_with_category(category)
+            #dbexec("SELECT * FROM item WHERE cat = '%s'" % category, None, False)
             for id, title, date, cat, score in dbsel:
                 if len(title) > colw_title:
                     colw_title = len(title)
@@ -62,7 +64,8 @@ def list(category, dests = None, colw_score = 7, colw_id = 5):
             text_error(misc.ERROR["emptycat"] % c(category))
             return
 
-        dbsel = dbexec("SELECT * FROM item WHERE cat = '"+category+"'", None, False)
+        dbsel = dbman.get_items_with_category(category)
+        #dbexec("SELECT * FROM item WHERE cat = '"+category+"'", None, False)
 
         # Sorting is optional.
         sortmethod = opt.get('sort')
@@ -131,23 +134,9 @@ def list_duplicates(cats):
     from sire.helpers import *
     from sire.printer import *
     from sire.misc import Misc as misc
+    import sire.dbman
 
-    # if comma separated, split and prepare the extra sql values
-    sqlcat = ''
-    if cats is not None:
-        sqlcat = 'WHERE '
-        # set up the WHERE sql thingie
-        for cat in cats:
-            # no dropping tables here kiddo
-            if not is_valid_category(cat):
-                text_error(misc.ERROR['bad_cat'] % cat)
-                continue
-            sqlcat += "cat = '%s' OR " % cat
-        # probably don't want the last ' OR ' anyway
-        sqlcat = sqlcat[:-4]
-
-    # fire up the main laseeer
-    results = dbexec("SELECT id, title, COUNT(title) FROM item %s GROUP BY title HAVING (COUNT(title) > 1)" % sqlcat, None, False)
+    results = dbman.get_duplicates_in_categories(cats)
     if not results:
         text_note("No duplicates found in category '%s'." % c(cat))
         return

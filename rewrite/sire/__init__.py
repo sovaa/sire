@@ -55,6 +55,9 @@ def entrypoint():
     if do.printcat is False:
         opt.set('category', False)
 
+    if do.profile is not None:
+        opt.set('profile', do.profile)
+
     if do.hide is True:
         opt.set('id', False)
         opt.set('color', False)

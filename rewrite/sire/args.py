@@ -23,11 +23,9 @@ def parseargs():
         "--no-newline":   "Don't print newlines. Use ', ' instead of '\\n' (newline) when listing one or more categories.",
         "--no-score":     "Don't print score when listing. Overrides setting in configuration.",
         "--show-score":   "Show score when printing. Overrides setting in configuration.",
-        "--add-category": "Add a new category (will edit your config file). Use --destination, -D to specify the category ID.",
         "--force":        "Ignore warnings and continue execution anyway.",
         "--version":      "Show the current version.",
-        "--profile":      "Use an alternative profile. A profile name is the name of the config file and the database file. When an alternative profile " + \
-                          "is used, their config an db files will be located in ~/.sire/altdb/<name> and ~/.sire/altrc/<name>.",
+        "--profile":      "Use an alternative profile. A different profile defines a whole different set of items.",
         "--edits":        "Specify the number of allowed edits to the search value when using --find, -f.",
         "--quiet":        "Be quiet. Don't print notices or warnings. Errors will still be printed.",
         "--verbose":      "Be verbose. Print notices, warnings and errors.",
@@ -36,7 +34,7 @@ def parseargs():
         "--days-ago":     "Only list items added no longer ago than this.",
         "--sort":         "Specify what to sort by. Overrides setting in configuration.",
         "--score":        "Assign a score to an item.",
-        "--restore-db":   "Restore the DB from the backup."
+        "--restore":      "Restore the DB from the backup."
     }
     
     group = OptionGroup(parser, "Hide and/or change output options", "These options will hide or change different types of output.")
@@ -56,8 +54,7 @@ def parseargs():
     group.add_option("-d", "--delete", dest = "delete", help = htxt["--delete"], metavar = "ID1[,ID2[...]]")
     group.add_option("-m", "--move", type="int", dest = "move", help = htxt["--move"], metavar = "ID")
     group.add_option("-c", "--change", dest = "change", help = htxt["--change"], metavar = "ID1[,ID2[...]]")
-    group.add_option("-A", "--add-category", dest = "addcat", help = htxt["--add-category"], metavar = "TITLE")
-    group.add_option("-b", "--restore-db", action = "store_true", dest = "restore", help = htxt["--restore-db"])
+    group.add_option("-b", "--restore", action = "store_true", dest = "restore", help = htxt["--restore"])
     parser.add_option_group(group)
     
     group = OptionGroup(parser, "Printing options", "These options only prints information and does not modify anything.")

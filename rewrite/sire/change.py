@@ -2,21 +2,28 @@
 '''
 Change the value of an item with ID 'id'.
 '''
-def change(db, conf, id, val_orig):
+def change(id, val_orig):
+    from sire.printer import format_text_in, format_text_out, c, text_note, text_error, text_warning
+    from sire.helpers import id_exists
+    from sire.misc import Misc
+    import sire.dbman as dbman
+    import re, sys
+
     # internal, updates the db and prints the result
     def db_and_print(val, i):
         # sql friendly
         val = format_text_in(val)
-        dbexec(db, "UPDATE item SET title = '%s' WHERE id = '%s'" % (val, i), None, True)
-        old = format_text_out(dbexec(db, "SELECT * FROM item WHERE id = '%s'" % i, None, False).fetchall()[0][1])
+        old = dbman.get_title_with_id(i)
+        dbman.set_title_with_id(val, i)
         text_note("Changed item with ID '%s' from '%s' to '%s'." % (c(i), c(old), c(format_text_out(val))))
         return
 
-    if opts.dest is None:
-        text_error(ERROR['destchg'])
+    if val_orig is None:
+        text_error(Misc.ERROR['destchg'])
         sys.exit(1)
 
-    import re
+    # user might have written something awefully wrong, so just in case
+    dbman.db_backup()
 
     # Find all '%([0-9]+)' in 'val'.
     id = id.split(',')
@@ -25,8 +32,8 @@ def change(db, conf, id, val_orig):
     # removes all specified IDs from the job list that doesn't exists and warns about them
     rids = []
     for k, i in enumerate(id):
-        if not id_exists(db, i):
-            text_warning(ERROR['item'] % i)
+        if not id_exists(i):
+            text_warning(Misc.ERROR['item'] % i)
             rids = [k] + rids
     for j in rids:
         del id[j]
@@ -34,7 +41,7 @@ def change(db, conf, id, val_orig):
     # fuck yeah, no search and replace needed, just do it
     if not res:
         for i in id:
-            db_and_print(val, i)
+            db_and_print(val_orig, i)
         return
 
     # so the user had some %(blabal) in their query; do some search and replace
@@ -44,11 +51,11 @@ def change(db, conf, id, val_orig):
         for v in res:
             # this means "if %(#), do this"
             if not cmp(v, '#'):
-                rval = dbexec(db, "SELECT * FROM item WHERE id = '%s'" % i, None, False).fetchall()[0][1]
+                rval = dbman.get_title_with_id(i)
             # otherwise it's a %(<some ID>)
             else:
-                rval = dbexec(db, "SELECT * FROM item WHERE id = '%s'" % v, None, False).fetchall()[0][1]
-            val = re.compile('\%\(%s\)' % v).sub(rval, val)
+                rval = dbman.get_title_with_id(v)
+            val = re.compile('\%\(' + v + '\)').sub(rval, val)
         db_and_print(val, i)
 
     return

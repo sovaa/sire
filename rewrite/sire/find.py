@@ -12,9 +12,8 @@ def approxsearch(db, conf, edits, sstr):
     elif edits < 0:
         edits = 0
 
-    cursor = dbexec(db, "SELECT * FROM item", None, False)
-    db = cursor.fetchall()
-
+    db = dbman.get_items()
+    print db
     for search in [sstr]:
         # allow at most 'edits' edits 
         ap = Apse.Approx(search.lower(), edit=edits)

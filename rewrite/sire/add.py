@@ -5,8 +5,7 @@ def add(title, category):
     from sire.printer import *
     from sire.helpers import *
     from sire.misc import *
-    from sire.dbman import *
-    import sys
+    import sire.dbman, sys
 
     if not category:
         category = config_value('defval.add')
@@ -22,8 +21,10 @@ def add(title, category):
     enforce_duplicate_policy(title, category)
 
     # add the item to the db
-    dbexec("INSERT INTO item (title, cat) VALUES ('%s', '%s')" % (format_text_in(title), category), None, True)
-    id = dbexec("SELECT last_insert_rowid()", None, False)[0][0]
+    dbman.add(title, category)
+    #dbexec("INSERT INTO item (title, cat) VALUES ('%s', '%s')" % (format_text_in(title), category), None, True)
+    id = dbman.get_last_id()
+    #id = dbexec("SELECT last_insert_rowid()", None, False)[0][0]
 
     print_info('add', (str(id), title, category, None))
     return

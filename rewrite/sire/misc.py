@@ -85,7 +85,8 @@ class Misc:
                 'pretend': False, 
                 'daysago': 0, 
                 'sort': None,
-                'score': True
+                'score': True,
+                'profile': 'default',
             }
             return
     

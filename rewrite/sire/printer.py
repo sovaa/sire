@@ -49,7 +49,7 @@ def color(text, color, bold = False):
 def c(text):
     from sire.shared import opt
     if opt.get('color'):
-        return C['g'] + text + C['d']
+        return C['g'] + str(text) + C['d']
     return text
 
 # prints names of the shown columns when listing if chosen to in config
@@ -133,7 +133,7 @@ def print_info(type, values):
         words = ('Moved', "from '%s' to" % c(values[4]), 'green', True)
 
     # default value
-    if not style or style is '0':
+    if not style or style == '0':
         text_info(text_color(words[0], words[2], words[3]))
         text_info("ID       : %s" % c(values[0]))
         text_info("Title    : %s" % c(values[1]))
@@ -142,18 +142,18 @@ def print_info(type, values):
             text_info("Age      : %s" % format_time_passed(values[3]))
         print
 
-    elif style is '1':
+    elif style == '1':
         text_info("%s item with ID '%s' and title '%s' %s category '%s'" % \
             (words[0], c(values[0]), c(str(values[1])), words[1], c(values[2])))
         if values[3]:
             text_info("It was in that category for %s" % format_time_passed(values[3]))
 
-    elif style is '2':
+    elif style == '2':
         text_info("%s '%s' '%s' %s '%s'" % (words[0], c(values[0]), c(str(values[1])), words[1], c(values[2])))
         if values[3]:
             text_info("Age was %s" % format_time_passed(values[3]))
 
-    elif style is '3':
+    elif style == '3':
         text_info("%s '%s' '%s' %s '%s'" % (words[0], c(values[0]), c(str(values[1])), words[1], c(values[2])))
 
     else:
