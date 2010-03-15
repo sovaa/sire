@@ -3,6 +3,7 @@ Requires:
     * Python 2.6
     * Latest Setuptools
     * sqlite3
+    * libsqlite3-dev
 
 How to install (as root or with sudo):
 

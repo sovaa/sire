@@ -3,10 +3,12 @@
 
 0.3.0:
 * clean up the code
-* divide different functionality in different files
-* installer
-* man page
+--- * divide different functionality in different files
+--- * installer
+--- * man page
 * unify negation, comma-separated values and range and add support to all relative functions
+* '~/.sire/sire.conf' overwrites '/etc/sire/sire.conf'
+* place sqlite db in '~/.sire/db.sire.sqlite'
 
 0.2.3:
 --- * backup database before doing anything (on volatile operation)
