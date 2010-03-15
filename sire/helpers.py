@@ -141,6 +141,7 @@ def version():
     return
 
 # check if item exists in a category
+# TODO: call dbman
 def title_exists(cat, item):
     return dbman.title_exists(cat, item)
     cursor = dbman.get_title_with_id_and_cat(id, cat)
@@ -150,6 +151,7 @@ def title_exists(cat, item):
     return False
 
 # Internal function to check for already existing items.
+# TODO: call dbman
 def id_exists(id):
     if not is_valid_id(id):
         text_error(misc.ERROR['bad_id'] % c(id))
@@ -161,6 +163,7 @@ def id_exists(id):
     return False
     
 # Internal function to check for already existing items.
+# TODO: call dbman
 def get_title_from_id(id):
     if not is_valid_id(id):
         text_error(misc.ERROR['bad_id'] % c(id))
@@ -173,6 +176,7 @@ def get_title_from_id(id):
     text_error(misc.ERROR["item"] % c(id)) 
     sys.exit(1)
 
+# TODO: call dbman
 def get_category_from_title(title):
     import sire.printer as printer
     from sire.shared import db, config
@@ -183,6 +187,7 @@ def get_category_from_title(title):
     sys.exit(1)
 
 # Get the category of a title with a certain ID.
+# TODO: call dbman
 def get_category_from_id(id):
     import sire.helpers as helpers
     import sire.printer as printer
@@ -194,6 +199,7 @@ def get_category_from_id(id):
     sys.exit(1)
 
 # Internal function to check for already existing items.
+# TODO: call dbman
 def item_exists(item):
     cursor = dbexec("SELECT * FROM item WHERE title = '%s'" % item, None, False)
     if len(cursor) > 0:
@@ -259,6 +265,7 @@ def sort(items):
 
 
 # internal function used by info() a heck of a lot to get info from -one- ID
+# TODO: call dbman
 def get_info_from_id(id, rangewarn = None):
     import time
     result = dbexec("SELECT * FROM item WHERE id = '%s'" % str(id), None, False)
