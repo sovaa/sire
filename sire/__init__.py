@@ -12,6 +12,7 @@ from sire.move import move
 from sire.change import change
 from sire.add import add
 from sire.delete import delete
+from sire.info import info
 
 def init():
     import sire.dbman as dbman

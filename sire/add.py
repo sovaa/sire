@@ -5,7 +5,7 @@ def add(title, category):
     from sire.printer import *
     from sire.helpers import *
     from sire.misc import *
-    import sire.dbman, sys
+    import sire.dbman as dbman, sys
 
     if not category:
         category = config_value('defval.add')

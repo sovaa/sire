@@ -5,18 +5,28 @@ from optparse import OptionGroup
 def parseargs():
     parser = OptionParser()
     htxt = {
-        "--list":         "List the specified category.",
+        "--list":         "List the specified category. Comma-separated values and negations can be used here.",
         "--add":          "Add an item to a category. If no destination (category in this case) is specified (using --destination, -D) the default add " + \
                           "category will be used (specified in config file).",
         "--destination":  "Specify to which category an item is to be added/moved/etc., or a new value to be used when using --change, -c.",
-        "--delete":       "Delete specified comma separated IDs.",
-        "--info":         "Show formated table with information about items with the specified comma separated IDs.",
-        "--find":         "Find titles matching specified value.",
-        "--move":         "Move title with specified ID to another category. If no destination (category in this case) is specified (using --destination, " + \
-                          "-D) the default move category will be used (specified in config file).",
-        "--change":       "Change the title of one or more items with the specified comma separated IDs to a new value, specified using --destination, " + \
-                          "-D. Here the destination can contain %(#) for self referencing, or %(123) for referencing title with ID 123. See the examples " + \
-                          "for more information.",
+        "--delete":       "Delete items with certain IDs. Comma-separated values, negations and ranges can be used here.",
+        "--info":         "Show formated table with information about items with the specified comma separated IDs. Can be used together with -d, --destination to " + \
+                          "specify which categories to look in, or not look in. Comma-separated values, negations and ranges can be used here.",
+        "--find":         "Find titles matching specified value. Using fuzzy string searching, can be customized in the config file.",
+
+        "--move":         
+"""
+Move title with specified ID to another category. Comma-separated values, negations and ranges can be used here. If no destination
+(category in this case) is specified (using --destination, -D) the default move category will be used (specified in config file).
+""",
+
+        "--change":       
+"""
+Change the title of one or more items with the specified IDs to a new value, specified using --destination, -D. Here the destination 
+can contain %(#) for self referencing, or %(123) for referencing title with ID 123. See the examples for more information. The IDs can
+be specified using comma-separated values, negations and ranges.
+""",
+
         "--no-id":        "Hide ID when listing, even if specified in config file to show them.",
         "--no-category":  "Hide category title when listing a category.",
         "--no-color":     "Don't use any color/bold when printing.",

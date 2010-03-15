@@ -5,6 +5,48 @@ from sire.misc import Misc as misc
 from sire.shared import opt
 C = misc.C
 
+# parse input which may contain Comma-separated values, Negations and Ranges (CNR)
+def cnr_parser(cnrs, type = "id"):
+    allcnrs = []
+    skips = []
+    if cnrs is None:
+        return allcnrs
+    cnrs = cnrs.split(',')
+
+    # get all skips
+    for cnr in cnrs:
+        if cnr[0] is not '%':
+            continue
+        cnr = cnr[1:]
+        if '-' in cnr:
+            skips.extend(get_range(cnr))
+            continue
+        skips.append(cnr)
+
+    # get all not skips
+    for cnr in cnrs:
+        if cnr[0] is '%':
+            continue
+        if '-' in cnr:
+            cnr = get_range(cnr)
+            for c in cnr:
+                if c in skips:
+                    continue
+                allcnrs.append(c)
+            continue
+        allcnrs.append(cnr)
+    return allcnrs
+
+def get_range(cnrs):
+    rangeids = []
+    if not is_valid_id(cnrs):
+        sys.exit(1)
+
+    cnrs = cnrs.split('-')
+    for i in range(int(cnrs[0]), int(cnrs[1]) + 1):
+        rangeids.append(str(i))
+    return rangeids
+
 # try to see if specified category is valid
 def is_valid_category(cat):
     if not cat:
@@ -25,7 +67,7 @@ def is_valid_id(id):
 
     if '-' in id:
         idrange = id.split('-')
-        if not is_valid_id_number(idrange[0]) or not is_valid_id_number(idrange[1]):
+        if not is_valid_id_number(idrange[0]) or not is_valid_id_number(idrange[1]) or (int(idrange[0]) > int(idrange[1])):
             text_error(misc.ERROR['bad_range'] % c(id))
             return False
 
@@ -192,6 +234,27 @@ def time_passed(date):
     date = int(time.time()- int(date))
     return (str(date/60/60/24/365), str(date/60/60/24 % 365), \
         str(date/60/60 % 24), str(date/60 % 60), str(date % 60))
+
+def sort(items):
+    # Sorting is optional.
+    sortmethod = opt.get('sort')
+    if not sortmethod: 
+        sortmethod = config_value("defval.sort")
+    
+    if sortmethod is None:
+        return items
+    
+    # Sort by specified method.
+    if sortmethod == "title":
+        items = sorted(items, key=lambda (i,s,t,c,d,m): (t.lower(),int(i),c,d,m,s))
+    elif sortmethod == "id":
+        items = sorted(items, key=lambda (i,s,t,c,d,m): (int(i),t.lower(),c,d,m,s))
+    elif sortmethod == "time":
+        items = sorted(items, key=lambda (i,s,t,c,d,m): (m,t.lower(),int(i),s,c,d))
+    elif sortmethod == "score":
+        items = sorted(items, key=lambda (i,s,t,c,d,m): (int(s),t.lower(),int(i),c,d,m))
+    return items
+
 
 # internal function used by info() a heck of a lot to get info from -one- ID
 def get_info_from_id(id, rangewarn = None):

@@ -32,7 +32,7 @@ def get_item_with_id(id):
 
 def add(title, category):
     from sire.helpers import format_text_in
-    dbexec("INSERT INTO item (title, cat) VALUES ('%s', '%s') WHERE profile = '%s'" % (format_text_in(title), category, opt.get('profile')), None, True)
+    dbexec("INSERT INTO item (title, cat, profile) VALUES ('%s', '%s', '%s')" % (format_text_in(title), category, opt.get('profile')), None, True)
 
 def get_items():
     return dbexec("SELECT id, title, cat, date, score FROM item", None, False)

@@ -122,7 +122,9 @@ def text_color(text, color, bold = False):
     return C[color] + C["bold"] + text + C["default"]
 
 def print_info(type, values):
-    from sire.helpers import *
+    from sire.helpers import format_time_passed, config_value
+    from sire.printer import text_info, c
+    from sire.misc import Misc
 
     style = config_value("general.printstyle")
     if type is 'delete':
