@@ -1,6 +1,6 @@
 
 from sire.printer import *
-from sire.dbman import *
+import sire.dbman as dbman
 from sire.misc import Misc as misc
 from sire.shared import opt
 C = misc.C
@@ -142,7 +142,9 @@ def version():
 
 # check if item exists in a category
 def title_exists(cat, item):
-    cursor = dbexec("SELECT * FROM item WHERE title = '%s' AND cat = '%s'" % (item, cat), None, False)
+    return dbman.title_exists(cat, item)
+    cursor = dbman.get_title_with_id_and_cat(id, cat)
+    dbexec("SELECT * FROM item WHERE title = '%s' AND cat = '%s'" % (item, cat), None, False)
     if len(cursor) > 0:
         return True
     return False

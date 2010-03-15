@@ -63,6 +63,15 @@ def set_title_with_id(title, id):
 def get_last_id():
     return dbexec("SELECT last_insert_rowid()", None, False)[0][0]
 
+def title_exists(cat, title):
+    from sire.helpers import format_text_in
+    db_valid_category(cat)
+    cursor = dbexec("SELECT title FROM item WHERE title = '%s' AND cat = '%s' AND profile = '%s'" % 
+        (format_text_in(title), format_text_in(cat), opt.get('profile')), None, False)
+    if len(cursor) > 0:
+        return True
+    return False
+
 def db_valid_category(cat):
     from sire.helpers import is_valid_category
     from sire.printer import text_error
