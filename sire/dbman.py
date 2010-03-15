@@ -72,6 +72,9 @@ def title_exists(cat, title):
         return True
     return False
 
+def get_all_categories():
+    return dbexec("SELECT DISTINCT cat FROM item", None, False)
+
 def db_valid_category(cat):
     from sire.helpers import is_valid_category
     from sire.printer import text_error

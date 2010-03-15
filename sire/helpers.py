@@ -226,7 +226,7 @@ def format_time_passed(date):
 
 # get all category names
 def get_all_categories():
-    cursor = dbexec("SELECT DISTINCT cat FROM item", None, False)
+    cursor = dbman.get_all_categories()
     return [x[0] for x in cursor]
 
 # calculate how long time has passed since a certain date and return

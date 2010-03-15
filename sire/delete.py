@@ -2,6 +2,7 @@
 from sire.printer import *
 from sire.helpers import *
 from sire.misc import *
+import sire.dbman as dbman
 
 # Delete an item from the database.
 def delete(ids):
@@ -10,7 +11,7 @@ def delete(ids):
     ids = str(ids).split(',')
 
     # backup db if something goes wrong
-    db_backup()
+    dbman.db_backup()
 
     for id in ids:
         # works for non-range IDs too
@@ -28,7 +29,6 @@ def delete(ids):
     return
 
 def delete_id(id):
-    import sire.dbman as dbman
     result = dbman.get_item_with_id(id)
 
     # doesn't exist
