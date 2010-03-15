@@ -84,7 +84,8 @@ def create_database():
             title VARCHAR NOT NULL, 
             date VARCHAR DEFAULT (strftime('%s')),
             cat VARCHAR NOT NULL, 
-            score INTEGER DEFAULT 0)
+            score INTEGER DEFAULT 0,
+            profile VARCHAR DEFAULT 'default')
         """
     print "  * Going to execute the following query:\n" + query
     c.execute(query)
