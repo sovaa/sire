@@ -101,18 +101,20 @@ sire -p dave -a "some value" -d dcat
 # use profile 'dave' to list its default category
 sire -p dave
 
-# add a new category to your config file
-# WARNING: You will loose all the comments you've made in your config file! Better to edit it manually!
-sire --add-category "a new category title" --destination newcat
-sire -A "a new category title" -D newcat
-
-# the same thing but with another profile
-sire --profile dave --add-category "a new category title" --destination newcat
-sire -p dave -A "a new category title" -D newcat
-
 # print formated table showing some information about items with ID '1', '230' and '20'
 sire --info 1,230,20
 sire -i 1,230,20
 
-# print formated tables showing some information about items with ID 334 and all with IDs from 200 to 300, except for ID 3, 4 and 103
-sire --info %103,334,200-300,%3,%4
+# print formated tables showing some information about items with ID 334 and and all between 
+# and including 200 and 300, but -not- 233 and any between and including 250 and 260
+sire --info 334,200-300,%233,%250-260
+
+[IN-DEPTH]
+
+Every argument that is either supposed to ba an ID or category support formats called CNR values;
+Comma-separated, Negations and Ranges. Negations are specified with a '%' before them. You can then
+list info about some IDs this way:
+
+'sire --info 1-50,%10-20,%4,55'
+
+Which will show info about items with ID 1 through 50 and 55, except for 10 through 20 and 4.
