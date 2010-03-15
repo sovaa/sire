@@ -140,7 +140,7 @@ All CNR values specified to the same operation (list, info, destination etc.) mu
 
 The CNR Format looks like to following:
     
-    <[%]CNR1[-CNR2>[,[%]CNR3[-CNR4]][,...]
+    <[%]CNR1[-CNR2]>[,[%]CNR3[-CNR4]][,...]
 
 At least one CNR is required.
 
