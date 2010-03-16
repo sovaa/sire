@@ -1,3 +1,10 @@
+Tue Mar 16 11:49:50 CET 2010: scorch
+	* profile is now just a field in the db which can be filtered when
+	  selecting
+	* functionality split in different files
+	* sqlite support added
+	* introduced CNR Format
+
 Mon Mar  8 11:25:12 CET 2010: scorch
 	* sorting now available for (--info, -i)
 	* (--list, -l) now uses the same sort method as (--info, -i)

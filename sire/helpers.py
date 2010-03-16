@@ -169,7 +169,7 @@ def get_title_from_id(id):
         text_error(misc.ERROR['bad_id'] % c(id))
         sys.exit(1);
 
-    cursor = dbexec("SELECT title FROM item WHERE id = '%s'" % id, None, False)
+    cursor = dbman.dbexec("SELECT title FROM item WHERE id = '%s'" % id, None, False)
     res = cursor
     if len(res) > 0:
         return res[0][0]
@@ -179,8 +179,9 @@ def get_title_from_id(id):
 # TODO: call dbman
 def get_category_from_title(title):
     import sire.printer as printer
+    import sire.dbman as dbman
     from sire.shared import db, config
-    res = dbexec("SELECT cat FROM item WHERE title = '%s'" % format_text_in(title), None, False)
+    res = dbman.dbexec("SELECT cat FROM item WHERE title = '%s'" % format_text_in(title), None, False)
     if len(res) > 0:
         return res[0][0]
     error(misc.ERROR["notitle"] % c(title))
@@ -191,8 +192,9 @@ def get_category_from_title(title):
 def get_category_from_id(id):
     import sire.helpers as helpers
     import sire.printer as printer
+    import sire.dbman as dbman
     import sys
-    res = dbexec("SELECT cat FROM item WHERE id = '%s'" % id, None, False)
+    res = dbman.dbexec("SELECT cat FROM item WHERE id = '%s'" % id, None, False)
     if len(res) > 0:
         return res[0][0]
     error(misc.ERROR["item"] % c(id))
@@ -201,7 +203,8 @@ def get_category_from_id(id):
 # Internal function to check for already existing items.
 # TODO: call dbman
 def item_exists(item):
-    cursor = dbexec("SELECT * FROM item WHERE title = '%s'" % item, None, False)
+    import sire.dbman as dbman
+    cursor = dbman.dbexec("SELECT * FROM item WHERE title = '%s'" % item, None, False)
     if len(cursor) > 0:
         return True
     return False
