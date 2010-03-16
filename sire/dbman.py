@@ -34,7 +34,7 @@ def get_item_with_id(id):
 
 def add(title, category):
     from sire.helpers import format_text_in
-    if not db_valid_Category(category):
+    if not db_valid_category(category):
         return False
     dbexec("INSERT INTO item (title, cat, profile) VALUES ('%s', '%s', '%s')" % (format_text_in(title), format_text_in(category), opt.get('profile')), None, True)
     return True
