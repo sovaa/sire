@@ -197,3 +197,10 @@ write: title
 type: sqlite
 location: /etc/sire/db.sqlite
 backup: /etc/sire/db.sqlite.backup
+
+; MySQL example:
+;type: mysql
+;host: localhost
+;pass: kingkong45
+;user: siredbuser
+
