@@ -1,11 +1,11 @@
 
 # Prints formated table with info about items with specified IDs.
 def info(ids, dests = None):
-    from sire.helpers import config_value, is_valid_id, get_info_from_id, cnr_parser, sort
+    from sire.helpers import config_value, is_valid_id, get_info_from_id, cnr_parser, sort, add_formated_date
     import sys
 
-    ids = cnr_parser(ids, "id")
-    dests = cnr_parser(dests, "cat")
+    ids = cnr_parser(ids)
+    dests = cnr_parser(dests)
 
     # [id, score, title, category, date_added, time_in_category]
     strlens = [1,1,1,1,1,1]
@@ -15,14 +15,15 @@ def info(ids, dests = None):
     for id in ids:
         result = get_info_from_id(id)
         if result:
-            items.append(result)
+            items.append(result[0])
 
     # found nothin', error/warning/whatever already shown if so
     if not items:
         return
 
-    # calculate each columns max width if not in skip list
+    # calculate each columns max width
     for item in items:
+        item = add_formated_date(item)
         # if destination cateogries are specified, and this item's not in it, continue
         if dests and item[3] not in dests:
             continue
@@ -39,12 +40,12 @@ def info(ids, dests = None):
         sys.stdout.write(labels[i] + ' '*spaces + '| ')
     width = width + 2*len(labels) - 1
     print '\n' + '-'*width
-    #print '\n' + '-'*(width + 2*len(labels) - 1)
 
     items = sort(items)
 
     # calculate spaces between column items and print them
     for item in items:
+        item = add_formated_date(item)
         # if destination cateogries are specified, and this item's not in it, continue
         if dests and item[3] not in dests:
             continue

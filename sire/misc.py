@@ -51,16 +51,20 @@ class Misc:
         'dbinfopass':  "You need to specify the password for the database in the config file.",
         'dbinfoname':  "You need to specify the name of the database in the config file.",
         'item':        "Item with ID '%s' does not exist.",
+        'itemnotfound':"Could not find any items matching your criterion.",
+        'itemexists':  "Item already exists in category '%s'. Use (--force, -f) to add anyway.",
         'dest':        "Need destination. Use --destination, -d.",
         'destcat':     "Need to specify a category ID. Specify it with --destination, -D.",
         'destchg':     "No change-to value specified. Specify it using --destination, -D.",
         'destscore':   "Need an item to assign the score to. Use --destination, -D.",
         'destdefcat':  "Need to specify category, default category not found. Use --destination, -D or edit your config file.", 
+        'dupe_cat':    "Category with ID '%s' already exists with the title '%s'.",
         'conf':        "Config file didn't exist. I created it for you. Populate it before continuing.",
         'catdesc':     "There is no category description for category '%s'.",
         'nocat':       "Category '%s' does not exist.",
         'notitle':     "There is no item with title '%s'.",
         'nodb':        "Database didn't exist. I created it for you.",
+        'nodupe':      "No duplicates found in categories '%s'.",
         'emptydb':     "Your database is empty.",
         'emptycat':    "Empty category '%s'.",
         'config':      "Config file not found. Should be in '~/.sire/'.",
@@ -69,7 +73,6 @@ class Misc:
         'bad_id':      "'%s' is not a valid ID.",
         'bad_cat':     "Bad chars in destination ('%s'). ' and \ are not allowed.",
         'bad_range':   "'%s' is not a valid range.",
-        'dupe_cat':    "Category with ID '%s' already exists with the title '%s'.",
     }    
     
     class miscfunctions:

@@ -23,41 +23,51 @@ def dbexec(template, values, volatile):
     return cursor.fetchall()
 
 def get_items_with_category(cat):
-    db_valid_category(cat)
+    if not db_valid_category(cat):
+        return None
     return dbexec("SELECT id, title, date, cat, score FROM item WHERE cat = '%s' AND profile = '%s'" % (cat, opt.get('profile')), None, False)
 
 def get_item_with_id(id):
-    db_valid_id(id)
+    if not db_valid_id(id):
+        return None
     return dbexec("SELECT id, title, date, cat, score FROM item WHERE id = '%s' AND profile = '%s'" % (id, opt.get('profile')), None, False)
 
 def add(title, category):
     from sire.helpers import format_text_in
-    dbexec("INSERT INTO item (title, cat, profile) VALUES ('%s', '%s', '%s')" % (format_text_in(title), category, opt.get('profile')), None, True)
+    if not db_valid_Category(category):
+        return False
+    dbexec("INSERT INTO item (title, cat, profile) VALUES ('%s', '%s', '%s')" % (format_text_in(title), format_text_in(category), opt.get('profile')), None, True)
+    return True
 
 def get_items():
     return dbexec("SELECT id, title, cat, date, score FROM item", None, False)
 
 def get_title_with_id(id):
     from sire.helpers import format_text_out
-    db_valid_id(id)
+    if not db_valid_id(id):
+        return None
     return format_text_out(dbexec("SELECT title FROM item WHERE id = '%s' AND profile = '%s'" % (id, opt.get('profile')), None, False)[0][0])
 
 def update_category(id, cat):
-    db_valid_id(id)
-    db_valid_category(cat)
-    dbexec("UPDATE item SET cat = '%s' WHERE id = '%s' AND profile = '%s'" % (cat, id, opt.get('profile')), None, True)
+    from sire.helpers import format_text_in
+    if not db_valid_id(id) or not db_valid_category(cat):
+        return False
+    return dbexec("UPDATE item SET cat = '%s' WHERE id = '%s' AND profile = '%s'" % (format_text_in(cat), id, opt.get('profile')), None, True)
 
 def update_date(id, date):
-    db_valid_id(id)
-    dbexec("UPDATE item SET date = '%s' WHERE id = '%s' AND profile = '%s'" % (date, id, opt.get('profile')), None, True)
+    if not db_valid_id(id):
+        return False
+    return dbexec("UPDATE item SET date = '%s' WHERE id = '%s' AND profile = '%s'" % (date, id, opt.get('profile')), None, True)
 
 def delete(id):
-    db_valid_id(id)
-    dbexec("DELETE FROM item WHERE id = '%s' AND profile = '%s'" % (id, opt.get('profile')), None, True)
+    if not db_valid_id(id):
+        return False
+    return dbexec("DELETE FROM item WHERE id = '%s' AND profile = '%s'" % (id, opt.get('profile')), None, True)
 
 def set_title_with_id(title, id):
     from sire.helpers import format_text_in
-    db_valid_id(id)
+    if not db_valid_id(id):
+        return False
     dbexec("UPDATE item SET title = '%s' WHERE id = '%s' AND profile = '%s'" % (format_text_in(title), id, opt.get('profile')), None, True)
 
 def get_last_id():
@@ -65,7 +75,8 @@ def get_last_id():
 
 def title_exists(cat, title):
     from sire.helpers import format_text_in
-    db_valid_category(cat)
+    if not db_valid_category(cat):
+        return False
     cursor = dbexec("SELECT title FROM item WHERE title = '%s' AND cat = '%s' AND profile = '%s'" % 
         (format_text_in(title), format_text_in(cat), opt.get('profile')), None, False)
     if len(cursor) > 0:
@@ -73,37 +84,38 @@ def title_exists(cat, title):
     return False
 
 def get_all_categories():
-    return dbexec("SELECT DISTINCT cat FROM item", None, False)
+    return [x[0] for x in dbexec("SELECT DISTINCT cat FROM item", None, False)]
 
 def db_valid_category(cat):
-    from sire.helpers import is_valid_category
-    from sire.printer import text_error
+    from sire.helpers import is_valid_category, format_text_out
+    from sire.printer import text_warning
     if not is_valid_category(cat):
-        text_error(Misc.ERROR["bad_id"])
-        sys.exit(1)
+        if config_value('warn.invalidcat') in [None, 1]:
+            text_warning(Misc.ERROR["bad_cat"] % format_text_out(cat))
+        return False
+    return True
 
 def db_valid_id(id):
     from sire.helpers import is_valid_id, format_text_out
-    from sire.printer import text_error
+    from sire.printer import text_warning
     if not is_valid_id(id):
-        text_error(Misc.ERROR["bad_id"])
-        sys.exit(1)
+        if config_value('warn.invalidid'):
+            text_warning(Misc.ERROR["bad_id"] % format_text_out(id))
+        return False
+    return True
 
 def get_duplicates_from_categories(cats):
-    from sire.helpers import is_valid_category
-    from sire.printer import text_error
     from sire.misc import Misc
-    # if comma separated, split and prepare the extra sql values
-    sqlcat = ''
+
+    # not categories specified, find in all
     if cats is None:
-        return None
+        return dbexec("SELECT id, title, COUNT(title) FROM item GROUP BY title HAVING (COUNT(title) > 1)", None, False)
 
     sqlcat = "WHERE profile = '%s' AND (" % opt.get('profile')
     # set up the WHERE sql thingie
     for cat in cats:
         # no dropping tables here kiddo
-        if not is_valid_category(cat):
-            text_error(Misc.ERROR['bad_cat'] % cat)
+        if not db_valid_category(cat):
             continue
         sqlcat += "cat = '%s' OR " % cat
     # probably don't want the last ' OR ' anyway
@@ -113,12 +125,10 @@ def get_duplicates_from_categories(cats):
     return dbexec("SELECT id, title, COUNT(title) FROM item %s GROUP BY title HAVING (COUNT(title) > 1)" % sqlcat, None, False)
 
 def update_title_with_id(title, id):
-    from sire.helpers import is_valid_id
-    from sire.printers import text_error
-    if not is_valid_id(id):
-        text_error(Misc.ERROR["bad_id"])
-        sys.exit(1)
-    dbexec("UPDATE item SET title = '%s' WHERE id = '%s' AND profile = '%s'" % (title, id, opt.get('profile')), None, True)
+    from sire.helpers import format_text_in
+    if not db_valid_id(id):
+        return False
+    return dbexec("UPDATE item SET title = '%s' WHERE id = '%s' AND profile = '%s'" % (format_text_in(title), id, opt.get('profile')), None, True)
 
 def connect():
     from sire.helpers import config_value
@@ -272,3 +282,4 @@ def get_db_location(type):
         text_warning(Misc.ERROR["dbloc"])
         dbloc = Misc.DBLOCATION[type]
     return dbloc
+

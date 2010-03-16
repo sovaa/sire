@@ -7,7 +7,7 @@ shared.opt = misc.Misc.miscfunctions()
 from sire.helpers import *
 import sys
 
-from sire.list import list
+from sire.list import list, list_duplicates, list_categories
 from sire.move import move
 from sire.change import change
 from sire.add import add
@@ -29,90 +29,74 @@ def init():
 
 # Handle command line arguments.
 def entrypoint():
-    from sire.args import *
+    from sire.args import parseargs
     init()
     do = parseargs()
     opt = shared.opt
 
-    if do.pretend is True:
-        opt.set('pretend', True)
 
     if do.version is True:
         version()
         return
 
-    if do.daysago is not None:
-        opt.set('daysago', do.daysago)
+    # TODO: fix this, not needed
+    opt.set('daysago', do.daysago)
+    opt.set('id', not do.noid)
+    opt.set('color', do.printcolor)
+    opt.set('category', do.printcat)
+    opt.set('score', do.noscore)
+    opt.set('newline', do.nonewline)
+    opt.set('verbose', do.verbose)
+    opt.set('profile', do.profile)
+    opt.set('pretend', do.pretend)
 
-    if do.noid is True:
-        opt.set('id', False)
+    # will negate any extra specified of these
+    if do.hide:
+        opt.set('id', do.noid)
+        opt.set('color', not do.printcolor)
+        opt.set('newline', ', ')
+        opt.set('category', not do.printcat)
 
-    if do.printcolor is False:
-        opt.set('color', False)
-
-    if do.printnewline is False:
-        opt.set('newline', False)
-
-    if do.printcat is False:
-        opt.set('category', False)
-
-    if do.profile is not None:
-        opt.set('profile', do.profile)
-
-    if do.hide is True:
-        opt.set('id', False)
-        opt.set('color', False)
-        opt.set('newline', False)
-        opt.set('category', False)
-
-    if do.verbose is not None:
-        opt.set('verbose', do.verbose)
-
-    if do.force is True:
+    if do.force:
         opt.set('force', True)
 
-    if do.sort is not None:
+    if do.sort:
         opt.set('sort', do.sort)
-        
-    # Will always either be True, False or None, even if not specified.
-    opt.set('score', do.noscore)
 
-    if do.edits is not None:
+    if do.edits:
         opt.set('edits', do.edits)
 
     # Options that do things comes last.
-    if do.restore is not None:
-        db_restore()
-        return
+    if do.restore:
+        return db_restore()
 
-    if do.find is not None:
-        approxsearch(opt.get('edits'), do.find)
-        return
+    if do.find:
+        return approxsearch(opt.get('edits'), do.find)
 
-    if do.move is not None:
-        move(do.move, do.dest)
-        return
+    if do.move:
+        return move(do.move, do.dest)
 
-    if do.change is not None:
-        change(do.change, do.dest)
-        return
+    if do.change:
+        return change(do.change, do.dest)
 
-    if do.delete is not None:
-        delete(do.delete)
-        return
+    if do.delete:
+        return delete(do.delete)
 
-    if do.info is not None:
-        info(do.info, do.dest)
-        return
+    if do.info:
+        return info(do.info, do.dest)
 
-    if do.add is not None:
-        add(do.add, do.dest)
-        return
+    if do.add:
+        return add(do.add, do.dest)
 
-    if do.score is not None:
-        set_score(do.dest, do.score)
-        return
+    if do.score:
+        return set_score(do.dest, do.score)
+
+    if do.listdupe:
+        return list_duplicates(do.dest)
+
+    if do.listcats:
+        return list_categories(do.dest)
         
     # Nothing else was done, so list a category.
-    list(do.list, do.dest)
-    return
+    return list(do.list)
+

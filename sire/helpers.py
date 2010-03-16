@@ -1,12 +1,13 @@
 
 from sire.printer import *
 import sire.dbman as dbman
-from sire.misc import Misc as misc
+from sire.misc import Misc
 from sire.shared import opt
-C = misc.C
+import time, sys
+C = Misc.C
 
 # parse input which may contain Comma-separated values, Negations and Ranges (CNR)
-def cnr_parser(cnrs, type = "id"):
+def cnr_parser(cnrs):
     allcnrs = []
     skips = []
     if cnrs is None:
@@ -19,7 +20,9 @@ def cnr_parser(cnrs, type = "id"):
             continue
         cnr = cnr[1:]
         if '-' in cnr:
-            skips.extend(get_range(cnr))
+            cnr_range = get_range(cnr)
+            if cnr_range:
+                skips.extend(cnr_range)
             continue
         skips.append(cnr)
 
@@ -29,6 +32,8 @@ def cnr_parser(cnrs, type = "id"):
             continue
         if '-' in cnr:
             cnr = get_range(cnr)
+            if not cnr:
+                continue
             for c in cnr:
                 if c in skips:
                     continue
@@ -40,7 +45,7 @@ def cnr_parser(cnrs, type = "id"):
 def get_range(cnrs):
     rangeids = []
     if not is_valid_id(cnrs):
-        sys.exit(1)
+        return None
 
     cnrs = cnrs.split('-')
     for i in range(int(cnrs[0]), int(cnrs[1]) + 1):
@@ -59,20 +64,24 @@ def is_valid_category(cat):
 
 # try to see if specified ID, range, negative etc. is a valid ID
 def is_valid_id(id):
+    from sire.printer import text_error
     id = str(id)
     if id[0] == '%':
         if not is_valid_id_number(id[1:]):
-            text_error(misc.ERROR['bad_id'] % c(id))
+            if config_value('warn.id') in [None, 1]:
+                text_warning(Misc.ERROR['bad_id'] % c(id))
             return False
 
     if '-' in id:
         idrange = id.split('-')
         if not is_valid_id_number(idrange[0]) or not is_valid_id_number(idrange[1]) or (int(idrange[0]) > int(idrange[1])):
-            text_error(misc.ERROR['bad_range'] % c(id))
+            if config_value('warn.range') in [None, 1]:
+                text_warning(Misc.ERROR['bad_range'] % c(id))
             return False
 
     elif not is_valid_id_number(id):
-        text_error(misc.ERROR['bad_id'] % c(id))
+        if config_value('warn.id') in [None, 1]:
+            text_warning(Misc.ERROR['bad_id'] % c(id))
         return False
     return True
 
@@ -107,7 +116,7 @@ def enforce_duplicate_policy(name, category):
 
     # need to check both
     if dup == '1' and title_exists(category, name):
-        text_warning("Item already exists in category '%s'. Use (--force, -f) to add anyway." % c(category))
+        text_warning(Misc.ERROR["itemexists"] % c(category))
         if not opt.get('force'):
             sys.exit(1)
     return
@@ -123,16 +132,14 @@ def config_value(ident):
 # return True if the difference between specified unix time and now is 
 # less than 'daysago' specified in config. False otherwise
 def is_young(date):
-    from sire.shared import opt
-    import time
-    if opt.get('daysago') is not 0:
-        if int(time.time()) - int(date) > opt.get('daysago')*24*3600:
-            return False
+    if opt.get('daysago') is 0:
+        return True
+    if int(time.time()) - int(date) > opt.get('daysago')*24*3600:
+        return False
     return True
 
 # see if we're only pretending to be mad
 def pretend():
-    from sire.shared import opt
     return opt.get('pretend')
 
 # Prints version number, licence and authors with email.
@@ -144,17 +151,12 @@ def version():
 # TODO: call dbman
 def title_exists(cat, item):
     return dbman.title_exists(cat, item)
-    cursor = dbman.get_title_with_id_and_cat(id, cat)
-    dbexec("SELECT * FROM item WHERE title = '%s' AND cat = '%s'" % (item, cat), None, False)
-    if len(cursor) > 0:
-        return True
-    return False
 
 # Internal function to check for already existing items.
 # TODO: call dbman
 def id_exists(id):
     if not is_valid_id(id):
-        text_error(misc.ERROR['bad_id'] % c(id))
+        text_error(Misc.ERROR['bad_id'] % c(id))
         sys.exit(1);
 
     cursor = dbexec("SELECT * FROM item WHERE id = '%s'" % str(id), None, False)
@@ -166,14 +168,14 @@ def id_exists(id):
 # TODO: call dbman
 def get_title_from_id(id):
     if not is_valid_id(id):
-        text_error(misc.ERROR['bad_id'] % c(id))
+        text_error(Misc.ERROR['bad_id'] % c(id))
         sys.exit(1);
 
     cursor = dbman.dbexec("SELECT title FROM item WHERE id = '%s'" % id, None, False)
     res = cursor
     if len(res) > 0:
         return res[0][0]
-    text_error(misc.ERROR["item"] % c(id)) 
+    text_error(Misc.ERROR["item"] % c(id)) 
     sys.exit(1)
 
 # TODO: call dbman
@@ -184,7 +186,7 @@ def get_category_from_title(title):
     res = dbman.dbexec("SELECT cat FROM item WHERE title = '%s'" % format_text_in(title), None, False)
     if len(res) > 0:
         return res[0][0]
-    error(misc.ERROR["notitle"] % c(title))
+    error(Misc.ERROR["notitle"] % c(title))
     sys.exit(1)
 
 # Get the category of a title with a certain ID.
@@ -197,7 +199,7 @@ def get_category_from_id(id):
     res = dbman.dbexec("SELECT cat FROM item WHERE id = '%s'" % id, None, False)
     if len(res) > 0:
         return res[0][0]
-    error(misc.ERROR["item"] % c(id))
+    error(Misc.ERROR["item"] % c(id))
     sys.exit(1)
 
 # Internal function to check for already existing items.
@@ -255,41 +257,40 @@ def sort(items):
     if sortmethod is None:
         return items
     
-    # Sort by specified method.
     if sortmethod == "title":
-        items = sorted(items, key=lambda (i,s,t,c,d,m): (t.lower(),int(i),c,d,m,s))
+        items = sorted(items, key=lambda (k,v,a,b,c): (v.lower(),int(k),a,b,c))
     elif sortmethod == "id":
-        items = sorted(items, key=lambda (i,s,t,c,d,m): (int(i),t.lower(),c,d,m,s))
+        items = sorted(items, key=lambda (k,v,a,b,c): (int(k),v,a,b,c))
     elif sortmethod == "time":
-        items = sorted(items, key=lambda (i,s,t,c,d,m): (m,t.lower(),int(i),s,c,d))
+        items = sorted(items, key=lambda (k,v,a,b,c): (a,int(k),v,b,c))
     elif sortmethod == "score":
-        items = sorted(items, key=lambda (i,s,t,c,d,m): (int(s),t.lower(),int(i),c,d,m))
+        items = sorted(items, key=lambda (k,v,a,b,c): (int(c),int(k),v,a,b))
+
     return items
 
 
 # internal function used by info() a heck of a lot to get info from -one- ID
-# TODO: call dbman
-def get_info_from_id(id, rangewarn = None):
-    import time
-    result = dbexec("SELECT * FROM item WHERE id = '%s'" % str(id), None, False)
-    if not result:
-        if rangewarn:
-            text_error(misc.ERROR["item"] % c(id))
-        return
-
-    result = result[0]
-    # add the columns needed for printing and rearange them a bit for fun and profit
-    d = time.gmtime(int(result[2]))
-    date_added = '%d-%d-%d, %d:%d:%d' % (d[0], d[1], d[2], d[3], d[4], d[5])
-    result = [
-        result[0], # id
-        result[4], # score
-        format_text_out(result[1]), # title
-        result[3], # category
-        date_added, # added
-        time_passed(result[2]) # time in category
-    ]
+def get_info_from_id(id):
+    from printer import text_warning
+    result = dbman.get_item_with_id(str(id))
+    if not result and config_value('warn.range') in [None, 1]:
+        text_warning(Misc.ERROR["item"] % c(id))
     return result
+
+def add_formated_date(item):
+    from printer import format_text_out
+    # add the columns needed for printing and rearange them a bit for fun and profit
+    d = time.gmtime(int(item[2]))
+    date_added = '%d-%d-%d, %d:%d:%d' % (d[0], d[1], d[2], d[3], d[4], d[5])
+    item = [
+        item[0], # id
+        item[4], # score
+        format_text_out(item[1]), # title
+        item[3], # category
+        date_added, # added
+        time_passed(item[2]) # time in category
+    ]
+    return item
 
 # parse a specified config file
 def parse_config(conffile):
@@ -297,7 +298,7 @@ def parse_config(conffile):
     if not os.path.isfile(conffile):
         f = file(conffile, 'w')
         f.close()
-        text_error(misc.ERROR["conf"])
+        text_error(Misc.ERROR["conf"])
         sys.exit(1)
 
     _config = {}

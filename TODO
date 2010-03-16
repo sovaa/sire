@@ -1,5 +1,6 @@
 1.0.0:
-* dunno
+* fully moved to easy internationalization by putting -all- output strings in sire.misc, not just the errors
+* ...
 
 0.3.0:
 * clean up the code

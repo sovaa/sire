@@ -1,44 +1,68 @@
 
-from sire.misc import Misc as misc
-C = misc.C
+import sys
+from sire.misc import Misc
+C = Misc.C
+ERROR = Misc.ERROR
 
 # print and error (like 'No item with ID blalba')
 def text_error(text):
     from sire.shared import opt
+    if opt.get('verbose') is 0:
+        return
     text = format_text_out(text)
-    if opt.get('verbose') is not 0:
-        if opt.get('color'):
-            print "%s%sError: %s%s" % (C["bold"], C["red"], C["default"], text)
-        else:
-            print "Error: " + text
+    if opt.get('color'):
+        print "%s%sError: %s%s" % (C["bold"], C["red"], C["default"], text)
+    else:
+        print "Error: " + text
     return
 
 # print a warning. Sort of the same as error, duh, should remove one of them
 def text_warning(text):
     from sire.shared import opt
+    if opt.get('verbose') is 0:
+        return
     text = format_text_out(text)
-    if opt.get('verbose') is not 0:
-        if opt.get('color'):
-            print "%s%sWarning: %s%s" % (C["bold"], C["yellow"], C["default"], text)
-        else:
-            print "Warning: " + text
+    if opt.get('color'):
+        print "%s%sWarning: %s%s" % (C["bold"], C["yellow"], C["default"], text)
+    else:
+        print "Warning: " + text
     return
 
 # print a notice (like 'Deleted item blabla' or 'Added item blabla')
 def text_note(text):
     from sire.shared import opt
     text = format_text_out(text)
-    if opt.get('verbose') is not 0:
-        if opt.get('color'):
-            print "%s%sNote: %s%s" % (C["bold"], C["green"], C["default"], text)
-        else:
-            print "Note: " + text
+    if opt.get('color'):
+        print "%s%sNote: %s%s" % (C["bold"], C["green"], C["default"], text)
+    else:
+        print "Note: " + text
     return
 
 def text_info(text):
     text = format_text_out(text)
     print text
     return
+
+# Print a category description using bold and colors.
+def format_category_out(category):
+    from sire.helpers import config_value
+    from sire.shared import opt
+
+    cattitle = config_value("categories." + category)
+    if not cattitle:
+        text_error(ERROR["catdesc"] % c(category))
+        return
+
+    if not opt.get('color'):
+        return "  %s ('%s')\n" % (cattitle,  category)
+
+    color = config_value("colors." + category)
+    if not color:
+        color = config_value("defval.color")
+    if color in C:
+        color = C[color]
+
+    return "  %s%s%s ('%s')%s" %(C["bold"], color, cattitle, category, C["default"])
 
 def color(text, color, bold = False):
     if not bold:
@@ -53,6 +77,7 @@ def c(text):
     return text
 
 # prints names of the shown columns when listing if chosen to in config
+# TODO: do not need to send pid and pscore, use opt
 def table_head(pid, pscore, cw):
     LABEL = ['TITLE', 'ID', 'SCORE']
     output = ''
@@ -84,24 +109,6 @@ def bold(string, color = True):
         return C['bold'] + string + C['default']
     return string
 
-# Print a category description using bold and colors.
-def format_category_out(category):
-    from sire.shared import opt, config
-    if ("categories." + category) not in config.keys():
-        text_error(misc.ERROR["catdesc"] % c(category))
-        sys.exit(1)
-
-    color = ''
-    if ("colors." + category) in config.keys():
-        color = C[config["colors." + category]]
-
-    elif "colors.defcol" in config.keys():
-        color = C[config["colors.defcol"]]
-
-    if opt.get('color'):
-        return "  %s%s%s ('%s')%s\n" %(C["bold"], color, config["categories." + category], category, C["default"])
-    return "  %s ('%s')\n" % (config["categories." + category],  category)
-
 # sql friendly format
 def format_text_in(title):
     import re
@@ -124,7 +131,6 @@ def text_color(text, color, bold = False):
 def print_info(type, values):
     from sire.helpers import format_time_passed, config_value
     from sire.printer import text_info, c
-    from sire.misc import Misc
 
     style = config_value("general.printstyle")
     if type is 'delete':

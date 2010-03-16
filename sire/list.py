@@ -1,91 +1,52 @@
 
-from sire.helpers import *
-from sire.printer import *
-from sire.misc import *
+import sire.dbman as dbman
+from sire.misc import Misc
+from sire.shared import opt
+from sire.printer import c
 
 '''
-List either all categories or only the default category.
+List either the default category or specified ones.
 '''
-def list(category, dests = None, colw_score = 7, colw_id = 5):
-    from sire.shared import opt
-    import sire.dbman as dbman
+def list(cats, colw_score = 7, colw_id = 5):
+    from sire.helpers import cnr_parser, config_value, sort, is_young
+    from sire.printer import text_warning, text_note, table_head, format_category_out, format_text_out, bold
+    alldbs = dbman.get_all_categories()
+    cats = cnr_parser(cats)
+    if not cats:
+        cats = [config_value("defval.list")]
 
-    pnewline = opt.get('newline')
-    pcolor = opt.get('color')
-    pscore = opt.get('score')
-    pcat = opt.get('category')
-    pid = opt.get('id')
-
-    if dests:
-        dests = dests.split(',')
-
-    alldbs = get_all_categories()
-
-    # Only print the category titles.
-    if category == 'titles':
-        for title in alldbs:
-            print format_category_out(title)
-        return
-
-    # might print on only one line if so choose
-    newline = ', '
-    if pnewline:
-        newline = '\n'
-
-    # List duplicates.
-    # TODO: separate argument, e.g. --list-duplicates
-    if category == 'dupe':
-        list_duplicates(dests)
-        return
-
-    dbs = [category]
-    if category == '%':  dbs = alldbs
-    elif category and ',' in category: dbs = category.split(',')
-    elif category == None: dbs = [config_value("defval.list")]
-
-    if not dbs[0]:
-        text_error(misc.ERROR['deflist'])
+    if not cats:
+        text_error(Misc.ERROR['deflist'])
         return
 
     # only care if it's set and not 0, and if newline is not... newline, dont show the table
-    if config_value("general.showtable") and newline is '\n':
+    if config_value("general.showtable") and opt.get('newline') is '\n':
         colw_title = 0
-        for category in dbs:
-            dbsel = dbman.get_items_with_category(category)
-            #dbexec("SELECT * FROM item WHERE cat = '%s'" % category, None, False)
+        for cat in cats:
+            dbsel = dbman.get_items_with_category(cat)
             for id, title, date, cat, score in dbsel:
                 if len(title) > colw_title:
                     colw_title = len(title)
-        table_head(pid, pscore, [colw_title, colw_id, colw_score])
+        table_head(opt.get('id'), opt.get('score'), [colw_title, colw_id, colw_score])
 
     output = ''
-    for category in dbs:
-        if category not in alldbs:
-            text_error(misc.ERROR["emptycat"] % c(category))
-            return
+    for cat in cats:
+        if cat not in alldbs:
+            if config_value('warn.emptycat') in [None, 1]:
+                text_warning(Misc.ERROR["emptycat"] % c(cat))
+            continue
 
-        dbsel = dbman.get_items_with_category(category)
-        #dbexec("SELECT * FROM item WHERE cat = '"+category+"'", None, False)
+        # get all items in category 'cat' and sort them if sorting is specified
+        dbsel = sort(dbman.get_items_with_category(cat))
 
-        # Sorting is optional.
-        sortmethod = opt.get('sort')
-        if not sortmethod: sortmethod = config_value("sort." + category)
-        if not sortmethod: sortmethod = config_value("defval.sort")
+        # (--no-category, -C) was used
+        if opt.get('category'): 
+            formcat = format_category_out(cat)
+            if formcat:
+                output += formcat + opt.get('newline')
 
-        if sortmethod is not None:
-            # Sort by specified method.
-            if sortmethod == "title":
-                dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (v.lower(),int(k),a,b,c))
-            elif sortmethod == "id":
-                dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (int(k),v,a,b,c))
-            elif sortmethod == "time":
-                dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (a,int(k),v,b,c))
-            elif sortmethod == "score":
-                dbsel = sorted(dbsel, key=lambda (k,v,a,b,c): (int(c),int(k),v,a,b))
-
-        if pcat: 
-            output += format_category_out(category)
         for id, title, date, cat, score in dbsel:
+            # (--days-ago, -y) was used
             if not is_young(date):
                 continue
 
@@ -98,11 +59,11 @@ def list(category, dests = None, colw_score = 7, colw_id = 5):
             l1 = ['1', None, False]
             l2 = ['0', False]
             gscore = config_value("general.showscore")
-            if config_value("general.showid") is '1' and pid:
-                output += bold(id, pcolor) + sid + ': '
+            if config_value("general.showid") is '1' and opt.get('id'):
+                output += bold(id, opt.get('color')) + sid + ': '
 
             # break it down: gscore is the CONFIG value that tells us to PRINT scores or not,
-            # pscore is the COMMAND LINE value that tells us to NOT PRINT (double negative)
+            # opt.get('score') is the COMMAND LINE value that tells us to NOT PRINT (double negative)
             #
             # the command line have higher priority than the config
             # remember: 'command' here is double negative, so NO is YES, ignorance is bliss, war is..., sorry
@@ -111,15 +72,13 @@ def list(category, dests = None, colw_score = 7, colw_id = 5):
             #   NO   +    YES  = NO
             #   YES  +    NO   = YES (not necessary, since config already sais 'print ahead, dude'
             #   YES  +    YES  = NO
-            if gscore in l1 and pscore in l1 or gscore in l2 and pscore in l2:
-                output += bold(str(score), pcolor) + sscore + ': '
-            output += format_text_out(title) + newline
+            if gscore in l1 and opt.get('score') in l1 or gscore in l2 and opt.get('score') in l2:
+                output += bold(str(score), opt.get('color')) + sscore + ': '
+            output += format_text_out(title) + opt.get('newline')
 
     output = output.strip()
     if len(output) is 0:
-        text_note("Could not find any items matching your criterion.")
-        return
-
+        return text_note(Misc.ERROR["itemnotfound"])
     if output[-1] == ',':
         output = output[:-1]
 
@@ -127,19 +86,16 @@ def list(category, dests = None, colw_score = 7, colw_id = 5):
     return
 
 '''
-List duplicates, all or in a specific categories.
+List duplicates; all or in a specific categories.
 '''
 def list_duplicates(cats):
-    from sire.shared import opt, db, config
-    from sire.helpers import *
-    from sire.printer import *
-    from sire.misc import Misc as misc
-    import sire.dbman
+    from sire.printer import text_note
+    from sire.helpers import cnr_parser
 
+    cats = cnr_parser(cats)
     results = dbman.get_duplicates_in_categories(cats)
     if not results:
-        text_note("No duplicates found in category '%s'." % c(cat))
-        return
+        return text_note(Misc.ERROR["nodupe"] % c(str(cats)))
     
     # each item returned by that last query up there only returns one of the duplicate items,
     # so get all matching titles and print their IDs and categories
@@ -149,5 +105,18 @@ def list_duplicates(cats):
         dupeids = dbexec(db, "SELECT id, cat FROM item WHERE title = '%s'" % item[1], None, False)
         for id in dupeids:
             print "  ID '%s' in category '%s'" % (c(str(id[0])), c(id[1]))
+    return
+
+def list_categories(cats):
+    from sire.printer import format_category_out
+    from sire.helpers import cnr_parser
+
+    cats = cnr_parser(cats)
+    if not cats:
+        cats = dbman.get_all_categories()
+    for cat in cats:
+        formated_cat = format_category_out(cat[0])
+        if formated_cat:
+            print formated_cat
     return
 

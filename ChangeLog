@@ -4,6 +4,9 @@ Tue Mar 16 11:49:50 CET 2010: scorch
 	* functionality split in different files
 	* sqlite support added
 	* introduced CNR Format
+	* created group 'warn' in config file to specify what to warn about
+	* renamed general.inforangewarn to warn.range in config
+	* a -lot- of fixes since the migration to 0.3.0
 
 Mon Mar  8 11:25:12 CET 2010: scorch
 	* sorting now available for (--info, -i)
