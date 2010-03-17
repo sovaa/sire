@@ -164,9 +164,9 @@ If you specify some categories in (--destination, -D), sire will only look for t
 
 
 
-    :::: --add, -i ::::
+    :::: --add, -a ::::
 
-The (--add, -i) operation looks like this:
+The (--add, -a) operation looks like this:
 
     sire <<--add|-a> <TITLE>> [<--destination|-D> <CNR(CAT)>]
 
