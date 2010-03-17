@@ -206,7 +206,7 @@ def get_category_from_id(id):
 # TODO: call dbman
 def item_exists(item):
     import sire.dbman as dbman
-    cursor = dbman.dbexec("SELECT * FROM item WHERE title = '%s'" % item, None, False)
+    cursor = dbman.dbexec("SELECT * FROM item WHERE title = '%s'" % format_text_in(item), None, False)
     if len(cursor) > 0:
         return True
     return False
