@@ -129,6 +129,13 @@ def config_value(ident):
         return config[ident]
     return None
 
+def print_config():
+    from sire.shared import config
+    print config.keys()
+
+    for value in config.keys():
+        print value, config[value]
+
 # return True if the difference between specified unix time and now is 
 # less than 'daysago' specified in config. False otherwise
 def is_young(date):

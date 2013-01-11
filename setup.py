@@ -7,8 +7,10 @@ DB = PATH + "db.sqlite"
 CONF = PATH + "sire.conf"
 MANNAME = "sire.1.bz2"
 MANDST = "/usr/local/share/man/man1/"
-MANSRC = resource_filename(Requirement.parse("sire"), "docs/sire.1.bz2")
-SAMPLE = resource_filename(Requirement.parse("sire"), "share/sire.conf.sample")
+#MANSRC = resource_filename(Requirement.parse("sire"), "docs/sire.1.bz2")
+MANSRC = "docs/sire.1.bz2"
+SAMPLE = "share/sire.conf.sample"
+#SAMPLE = resource_filename(Requirement.parse("sire"), "share/sire.conf.sample")
 MODE = 0660
 
 def fperm(fname, mode = MODE):
