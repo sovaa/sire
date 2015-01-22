@@ -33,7 +33,7 @@ def approxsearch(edits, sstr):
             value = key[1]
             item_id = key[0]
             category = key[2]
-            ratio = fuzz.ratio(search.lower(), replace_all(value.lower(), reps))
+            ratio = fuzz.partial_ratio(search.lower(), replace_all(value.lower(), reps))
             found = ratio >= min_ratio
             res = (item_id, value, ratio, category)
             if found and value not in results:

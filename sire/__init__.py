@@ -53,7 +53,7 @@ def entrypoint():
     opt.set('verbose', do.verbose)
     opt.set('profile', do.profile)
     opt.set('pretend', do.pretend)
-    opt.set('edits', 50)
+    opt.set('edits', 20)
 
     # will negate any extra specified of these
     if do.hide:

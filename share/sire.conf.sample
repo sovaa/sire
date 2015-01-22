@@ -119,12 +119,12 @@ q: q
 ; be printed before all results in that category.
 ;
 ; find.edits
-; The number of characters that are allowed to be edited when searching for an
-; item. Max is 10. Higher than 2 or 3 will produce a lot of results, especally
-; when the search string is short (less than five or six characters).
+; The maximum allowed partial distance that is when searching for an
+; item. Any value between 0 and 100 is allowed, 100 means only exact matches. 
+; Default is 20, which produces quite okay matches.
 [find]
 showcats: 1
-edits: 0
+edits: 20
 
 ; Per category duplicate policy when adding items.
 ;
