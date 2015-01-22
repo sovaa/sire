@@ -17,8 +17,11 @@ def approxsearch(edits, sstr):
         '-': ' '
     }
 
-    if edits is 0 and config_value("find.edits"):
-        edits = int(config_value("find.edits"))
+    if edits is 0:
+        if config_value("find.edits"):
+            edits = int(config_value("find.edits"))
+        else:
+            edits = 18 # default
     if edits < 0:
         edits = 0
     elif edits > 100:

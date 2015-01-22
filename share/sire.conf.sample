@@ -121,10 +121,10 @@ q: q
 ; find.edits
 ; The maximum allowed partial distance that is when searching for an
 ; item. Any value between 0 and 100 is allowed, 100 means only exact matches. 
-; Default is 20, which produces quite okay matches.
+; Default is 18, which produces quite okay matches.
 [find]
 showcats: 1
-edits: 20
+edits: 18
 
 ; Per category duplicate policy when adding items.
 ;
