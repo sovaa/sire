@@ -114,4 +114,3 @@ class Misc:
     
         cf.close()
         return
-                    

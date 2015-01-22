@@ -17,7 +17,7 @@ def info(ids, dests = None):
         if result:
             items.append(result[0])
 
-    # found nothin', error/warning/whatever already shown if so
+    # found nothing, error/warning/whatever already shown if so
     if not items:
         return
 

@@ -1,79 +1,71 @@
-# Do an approximate string search using the Apse package.
-def approxsearch(db, conf, edits, sstr):
-    import Apse # for approximate searching
-    reslist = []
-    reps = {'.':' ', '_':' ', '-':' '}
 
-    if edits is 0 and "find.edits" in conf.keys():
-        edits = int(conf["find.edits"])
-    
-    if edits > 10:
-        edits = 10
-    elif edits < 0:
+
+
+# Do an approximate string search using the Apse package.
+def approxsearch(edits, sstr):
+    from sire.helpers import config_value, replace_all, text_warning, text_note, format_text_out
+    from sire.printer import format_category_out
+    from fuzzywuzzy import fuzz # fuzzy string matching
+    import sire.dbman as dbman
+    from sire.shared import opt
+    from sire.misc import Misc
+
+    results = []
+    reps = {
+        '.': ' ',
+        '_': ' ',
+        '-': ' '
+    }
+
+    if edits is 0 and config_value("find.edits"):
+        edits = int(config_value("find.edits"))
+    if edits < 0:
         edits = 0
+    elif edits > 100:
+        edits = 100
 
     db = dbman.get_items()
-    print db
     for search in [sstr]:
-        # allow at most 'edits' edits 
-        ap = Apse.Approx(search.lower(), edit=edits)
+        # allow at most 'edits' edits
+        min_ratio = 100 - edits
 
-        # messy, I know
         for key in db: 
-            val = key[1]
-            id = key[0]
-            cat = key[3]
-            val_orig = val.lower()
-            fnd = bool(ap.match(val_orig))
-            dst = ap.dist(val_orig)
-            res = (id, val, dst, cat)
+            value = key[1]
+            item_id = key[0]
+            category = key[2]
+            ratio = fuzz.ratio(search.lower(), replace_all(value.lower(), reps))
+            found = ratio >= min_ratio
+            res = (item_id, value, ratio, category)
+            if found and value not in results:
+                results.append(res)
 
-            if fnd and val not in reslist:
-                reslist.append(res)
-
-            # Try to match if we replace some characters.
-            val_rep = replace_all(val.lower(), reps)
-            fnd_rep = bool(ap.match(val_rep))
-            dst_rep = ap.dist(val)
-            res_rep = (id, val, dst_rep, cat)
-
-            if not fnd and fnd_rep and val not in reslist:
-                reslist.append(res_rep)
-
-    if reslist != []:
-        showcats = False
-        if "find.showcats" in conf.keys() and conf["find.showcats"] == '1':
-            showcats = True
-
-        text_note("Match found. Best match at the top.\n")
-        old_cat = None
-
-        if showcats:
-            reslist.sort(lambda x,y:cmp(x[3],y[3]))
-            reslist.reverse()
-        
-        else:
-            reslist.sort(lambda x,y:cmp(x[2],y[2]))
-            reslist.reverse()
-
-        for res in reslist:
-            if showcats:
-                if old_cat is None or res[3] != old_cat:
-                    print
-                    if misc.get('category'):
-                        print format_category_out(res[3], conf)
-                    old_cat = res[3]
-
-            # Make titles aligned.
-            spacer = ' '*(5 - len(str(res[0])))
-
-            # Showing ID when listing is optional.
-            if "general.showid" not in conf.keys() or not misc.get('id'):
-                print res[1]
-            
-            elif conf["general.showid"] == '1':
-                print "%s%s%s %s: %s" % (C['bold'], res[0], C['default'], spacer, format_text_out(res[1]))
-    else:
+    if not results:
         text_warning("No matches found!")
-    return
+        return
 
+    showcats = config_value('find.showcats') == '1' and opt.get('category') is not False
+    text_note("Match found. Best match at the top.")
+
+    if showcats:
+        results.sort(lambda x, y: cmp(x[2], y[2]))
+        results.sort(lambda x, y: cmp(x[3], y[3]))
+        results.reverse()
+    else:
+        results.sort(lambda x, y: cmp(x[2], y[2]))
+        results.reverse()
+
+    previous_category = None
+    for result in results:
+        if showcats:
+            if previous_category is None or result[3] != previous_category:
+                previous_category = result[3]
+                print '\n' + format_category_out(result[3])
+
+        # Make titles aligned.
+        spacer = ' '*(5 - len(str(res[0])) + 3 - len(str(result[2])))
+
+        # Showing ID when listing is optional.
+        if config_value("general.showid") == '0' or opt.get('id') is False:
+            print result[1]
+        else:
+            print "%s%s%s %s (ratio %s): %s" % (Misc.C['bold'], result[0], Misc.C['default'], spacer, result[2], format_text_out(result[1]))

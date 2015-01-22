@@ -119,6 +119,8 @@ setup(name='sire',
     install_requires=[
         'mysql-python',
         'pysqlite>=2.6.0',
+        'fuzzywuzzy>=0.3.1',
+        'python-Levenshtein',
     ],
     entry_points={
         'console_scripts': [

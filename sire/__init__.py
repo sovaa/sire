@@ -7,12 +7,16 @@ shared.opt = misc.Misc.miscfunctions()
 from sire.helpers import *
 import sys
 
-from sire.list import list, list_duplicates, list_categories
+from sire.list import list as do_list, list_duplicates, list_categories
 from sire.move import move
 from sire.change import change
 from sire.add import add
 from sire.delete import delete
 from sire.info import info
+from sire.find import approxsearch
+from sire.score import set_score
+from sire.dbman import db_restore
+
 
 def init():
     import sire.dbman as dbman
@@ -27,13 +31,13 @@ def init():
     shared.db = dbman.connect()
     return
 
+
 # Handle command line arguments.
 def entrypoint():
     from sire.args import parseargs
     init()
     do = parseargs()
     opt = shared.opt
-
 
     if do.version is True:
         version()
@@ -49,6 +53,7 @@ def entrypoint():
     opt.set('verbose', do.verbose)
     opt.set('profile', do.profile)
     opt.set('pretend', do.pretend)
+    opt.set('edits', 50)
 
     # will negate any extra specified of these
     if do.hide:
@@ -98,5 +103,5 @@ def entrypoint():
         return list_categories(do.dest)
         
     # Nothing else was done, so list a category.
-    return list(do.list)
+    return do_list(do.list)
 
