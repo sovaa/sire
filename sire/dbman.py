@@ -146,6 +146,7 @@ def connect():
 
         try:
             db = sqlite3.connect(location)
+            db.text_factory = str
         except:
             text_error(Misc.ERROR["dbcon"])
             sys.exit(1)
