@@ -1,7 +1,8 @@
 from sire.helpers import config_value
 
+
 # Do an approximate string search using the Apse package.
-def approxsearch(edits, sstr):
+def approxsearch(edits, search_strings, destinations):
     from sire.helpers import text_warning, format_text_out
     from sire.printer import format_category_out
     from sire.shared import opt
@@ -9,7 +10,7 @@ def approxsearch(edits, sstr):
 
     show_categories = config_value('find.showcats') == '1' and opt.get('category') is not False
     edits = determine_edits(edits)
-    results = search(edits, sstr)
+    results = search(edits, search_strings, destinations)
     sort_results(results, show_categories)
 
     if not results:
@@ -72,7 +73,7 @@ def determine_edits(edits):
     return edits
 
 
-def search(edits, sstr):
+def search(edits, search_strings, destinations):
     from sire.helpers import replace_all
     from fuzzywuzzy import fuzz  # fuzzy string matching
     import sire.dbman as dbman
@@ -84,19 +85,28 @@ def search(edits, sstr):
         '_': ' ',
         '-': ' '
     }
-    for search in [sstr]:
+    for search_string in [search_strings]:
         # allow at most 'edits' edits
         min_ratio = 100 - edits
         for key in db:
-            value = key[1]
-            item_id = key[0]
-            category = key[2]
-            ratio = fuzz.partial_ratio(search.lower(), replace_all(value.lower(), reps))
+            item_id, value, category = key[0], key[1], key[2]
+            if should_skip_category(category, destinations):
+                continue
+
+            ratio = fuzz.partial_ratio(search_string.lower(), replace_all(value.lower(), reps))
             found = ratio >= min_ratio
             res = (item_id, value, ratio, category)
             if found and value not in results:
                 results.append(res)
     return results
+
+
+def should_skip_category(category, destinations):
+    if not destinations:
+        return False
+    if category not in destinations:
+        return True
+    return False
 
 
 def print_columns():

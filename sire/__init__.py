@@ -75,7 +75,7 @@ def entrypoint():
         return db_restore()
 
     if do.find:
-        return approxsearch(opt.get('edits'), do.find)
+        return approxsearch(opt.get('edits'), do.find, do.dest)
 
     if do.move:
         return move(do.move, do.dest)
